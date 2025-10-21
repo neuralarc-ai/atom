@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, jobs, InsertJob, tests, InsertTest, candidates, InsertCandidate } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -85,4 +85,95 @@ export async function getUser(id: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ============ Jobs ============
+export async function createJob(job: InsertJob) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(jobs).values(job);
+  return result;
+}
+
+export async function getAllJobs() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(jobs).orderBy(desc(jobs.createdAt));
+}
+
+export async function getJobById(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(jobs).where(eq(jobs.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateJob(id: string, data: Partial<InsertJob>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(jobs).set(data).where(eq(jobs.id, id));
+}
+
+export async function deleteJob(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(jobs).where(eq(jobs.id, id));
+}
+
+// ============ Tests ============
+export async function createTest(test: InsertTest) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(tests).values(test);
+  return result;
+}
+
+export async function getAllTests() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tests).orderBy(desc(tests.createdAt));
+}
+
+export async function getTestById(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tests).where(eq(tests.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getTestsByJobId(jobId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tests).where(eq(tests.jobId, jobId)).orderBy(desc(tests.createdAt));
+}
+
+// ============ Candidates ============
+export async function createCandidate(candidate: InsertCandidate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(candidates).values(candidate);
+  return result;
+}
+
+export async function getAllCandidates() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(candidates).orderBy(desc(candidates.completedAt));
+}
+
+export async function getCandidateById(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(candidates).where(eq(candidates.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getCandidatesByTestId(testId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(candidates).where(eq(candidates.testId, testId)).orderBy(desc(candidates.completedAt));
+}
+
+export async function updateCandidate(id: string, data: Partial<InsertCandidate>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(candidates).set(data).where(eq(candidates.id, id));
+}
