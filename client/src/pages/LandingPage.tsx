@@ -161,6 +161,48 @@ export default function LandingPage() {
           </Card>
         </div>
 
+        {/* How It Works */}
+        <div className="mb-16">
+          <h2 className="text-4xl font-bold text-[#1B5E20] text-center mb-12">How Atom Works</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="border-2 border-[#A8D5BA] hover:shadow-xl transition-all">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-[#FF6347] to-[#FF8C69] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <span className="text-3xl font-bold text-white">1</span>
+                </div>
+                <CardTitle className="text-[#1B5E20] text-center">Create Job Roles</CardTitle>
+                <CardDescription className="text-center">
+                  Define job positions with specific skills, experience levels, and requirements. Atom automatically generates a 50-question pool tailored to each role.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-[#C4D82E] hover:shadow-xl transition-all">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <span className="text-3xl font-bold text-white">2</span>
+                </div>
+                <CardTitle className="text-[#1B5E20] text-center">Generate Tests</CardTitle>
+                <CardDescription className="text-center">
+                  Create customized assessments with 21 randomized questions from the pool. Choose complexity levels: Easy (20 min), Medium/High (45 min).
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-[#A8D5BA] hover:shadow-xl transition-all">
+              <CardHeader>
+                <div className="w-16 h-16 bg-gradient-to-br from-[#C4D82E] to-[#A8D5BA] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <span className="text-3xl font-bold text-[#1B5E20]">3</span>
+                </div>
+                <CardTitle className="text-[#1B5E20] text-center">Evaluate Candidates</CardTitle>
+                <CardDescription className="text-center">
+                  Share test links with candidates, monitor their progress in real-time, and review detailed results with AI-powered code analysis.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+
         {/* Key Features */}
         <Card className="mb-16 border-2 border-[#1B5E20] shadow-2xl">
           <CardHeader className="text-center">
@@ -214,6 +256,94 @@ export default function LandingPage() {
                     Detailed insights into candidate performance and success rates
                   </p>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Test Types */}
+        <div className="mb-16">
+          <h2 className="text-4xl font-bold text-[#1B5E20] text-center mb-12">Assessment Types</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="border-2 border-[#FF6347] hover:shadow-xl transition-all">
+              <CardHeader>
+                <CardTitle className="text-[#1B5E20] text-2xl">Technical Assessments</CardTitle>
+                <CardDescription className="text-base">
+                  <ul className="space-y-3 mt-4">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#FF6347] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>Multiple Choice Questions:</strong> Test theoretical knowledge and best practices</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#FF6347] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>Coding Challenges:</strong> Real-world programming problems with language-specific environments (Python, JavaScript, Swift, Kotlin)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#FF6347] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>AI Code Review:</strong> Automated analysis of code quality, efficiency, and best practices</span>
+                    </li>
+                  </ul>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-[#1B5E20] hover:shadow-xl transition-all">
+              <CardHeader>
+                <CardTitle className="text-[#1B5E20] text-2xl">Non-Technical Assessments</CardTitle>
+                <CardDescription className="text-base">
+                  <ul className="space-y-3 mt-4">
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#1B5E20] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>Scenario-Based Questions:</strong> Real-world situations for roles like Social Media Manager, Pre-Sales, UI/UX Designer</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#1B5E20] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>Behavioral Assessments:</strong> Evaluate decision-making, creativity, and problem-solving skills</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-2 h-2 bg-[#1B5E20] rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                      <span><strong>Role-Specific Scenarios:</strong> Tailored questions matching job responsibilities and requirements</span>
+                    </li>
+                  </ul>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+
+        {/* Security Features */}
+        <Card className="mb-16 border-2 border-[#FF6347] shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl text-[#1B5E20]">Built for Security & Integrity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#FF6347] to-[#FF8C69] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Shield className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="font-semibold text-[#1B5E20] mb-2">Anti-Cheating Measures</h3>
+                <p className="text-gray-600 text-sm">
+                  Automatic test termination if candidates minimize browser, switch tabs, or change focus
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#1B5E20] to-[#2E7D32] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Target className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="font-semibold text-[#1B5E20] mb-2">Randomized Questions</h3>
+                <p className="text-gray-600 text-sm">
+                  Each test draws from a 50-question pool, ensuring unique assessments for every attempt
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#C4D82E] to-[#A8D5BA] rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <BarChart3 className="w-10 h-10 text-[#1B5E20]" />
+                </div>
+                <h3 className="font-semibold text-[#1B5E20] mb-2">Detailed Analytics</h3>
+                <p className="text-gray-600 text-sm">
+                  Track completion rates, time spent per question, and identify suspicious patterns
+                </p>
               </div>
             </div>
           </CardContent>
