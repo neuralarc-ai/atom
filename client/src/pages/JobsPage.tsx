@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,87 +19,58 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function JobsPage() {
+  const { data: jobs = [], isLoading, refetch } = trpc.jobs.list.useQuery();
+  const createMutation = trpc.jobs.create.useMutation({
+    onSuccess: () => {
+      toast.success("Job created successfully");
+      refetch();
+      setIsCreateOpen(false);
+      setNewJob({ title: "", description: "", skills: "", experience: "" });
+    },
+  });
+  const updateMutation = trpc.jobs.update.useMutation({
+    onSuccess: () => {
+      toast.success("Job updated successfully");
+      refetch();
+      setIsEditOpen(false);
+    },
+  });
+  const deleteMutation = trpc.jobs.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Job deleted successfully");
+      refetch();
+    },
+  });
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [newJob, setNewJob] = useState({
     title: "",
     description: "",
-    experience: "",
     skills: "",
+    experience: "",
   });
-
-  const utils = trpc.useUtils();
-  const { data: jobs = [], isLoading } = trpc.jobs.list.useQuery();
-  const createMutation = trpc.jobs.create.useMutation({
-    onSuccess: () => {
-      utils.jobs.list.invalidate();
-      setIsCreateOpen(false);
-      resetForm();
-      toast.success("Job created successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const updateMutation = trpc.jobs.update.useMutation({
-    onSuccess: () => {
-      utils.jobs.list.invalidate();
-      setIsEditOpen(false);
-      setEditingJob(null);
-      resetForm();
-      toast.success("Job updated successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const deleteMutation = trpc.jobs.delete.useMutation({
-    onSuccess: () => {
-      utils.jobs.list.invalidate();
-      toast.success("Job deleted successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const resetForm = () => {
-    setFormData({ title: "", description: "", experience: "", skills: "" });
-  };
 
   const handleCreate = () => {
-    const skills = formData.skills.split(",").map((s) => s.trim()).filter(Boolean);
+    if (!newJob.title || !newJob.skills || !newJob.experience) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
     createMutation.mutate({
-      title: formData.title,
-      description: formData.description,
-      experience: formData.experience,
-      skills,
+      ...newJob,
+      skills: newJob.skills.split(",").map(s => s.trim()),
     });
-  };
-
-  const handleEdit = (job: any) => {
-    setEditingJob(job);
-    const skills = JSON.parse(job.skills);
-    setFormData({
-      title: job.title,
-      description: job.description,
-      experience: job.experience,
-      skills: skills.join(", "),
-    });
-    setIsEditOpen(true);
   };
 
   const handleUpdate = () => {
-    const skills = formData.skills.split(",").map((s) => s.trim()).filter(Boolean);
+    if (!editingJob) return;
     updateMutation.mutate({
       id: editingJob.id,
-      title: formData.title,
-      description: formData.description,
-      experience: formData.experience,
-      skills,
+      title: editingJob.title,
+      description: editingJob.description,
+      experience: editingJob.experience,
+      skills: editingJob.skills.split(",").map((s: string) => s.trim()),
     });
   };
 
@@ -110,78 +82,178 @@ export default function JobsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-8">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Job Roles</h1>
-            <p className="text-muted-foreground">Manage job positions and requirements</p>
+          <div className="relative">
+            <div className="absolute inset-0 gradient-coral opacity-10 rounded-3xl blur-3xl" />
+            <div className="relative">
+              <h1 className="text-5xl font-bold tracking-tight text-gradient mb-3">Jobs</h1>
+              <p className="text-muted-foreground text-xl">Manage job roles and requirements</p>
+            </div>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Job
-          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" className="gap-2 gradient-coral text-white shadow-lg hover:shadow-xl transition-all">
+                <Plus className="h-5 w-5" />
+                Add Job
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Create New Job</DialogTitle>
+                <DialogDescription>Add a new job role to the system</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Job Title *</Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g., Senior Python Developer"
+                    value={newJob.title}
+                    onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Job description and responsibilities"
+                    value={newJob.description}
+                    onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Required Skills *</Label>
+                  <Input
+                    id="skills"
+                    placeholder="e.g., Python, Django, REST APIs"
+                    value={newJob.skills}
+                    onChange={(e) => setNewJob({ ...newJob, skills: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="experience">Experience Required *</Label>
+                  <Input
+                    id="experience"
+                    placeholder="e.g., 3-5 years"
+                    value={newJob.experience}
+                    onChange={(e) => setNewJob({ ...newJob, experience: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreate}
+                  disabled={createMutation.isPending}
+                  className="gradient-coral text-white"
+                >
+                  {createMutation.isPending ? "Creating..." : "Create Job"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {isLoading ? (
-          <p className="text-muted-foreground">Loading jobs...</p>
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Loading jobs...</p>
+          </div>
         ) : jobs.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No jobs yet</p>
-              <p className="text-sm text-muted-foreground mb-4">Create your first job role</p>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Job
+          <Card className="bento-card border-0 shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Briefcase className="h-20 w-20 text-muted-foreground/30 mb-4" />
+              <p className="text-xl font-medium mb-2">No jobs yet</p>
+              <p className="text-muted-foreground text-center mb-6">
+                Create your first job role to get started
+              </p>
+              <Button onClick={() => setIsCreateOpen(true)} className="gradient-coral text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Job
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job) => {
-              const skills = JSON.parse(job.skills);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job, idx) => {
+              const gradients = ["gradient-coral", "gradient-lime", "gradient-mint"];
+              const colors = ["#FF6347", "#C4D82E", "#A8D5BA"];
+              const gradient = gradients[idx % 3];
+              const color = colors[idx % 3];
+
               return (
-                <Card key={job.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{job.title}</span>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(job)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(job.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                <Card
+                  key={job.id}
+                  className="bento-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden group"
+                >
+                  <div className={`h-3 ${gradient}`} />
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <CardTitle className="text-xl font-bold mb-2 group-hover:text-[#FF6347] transition-colors">
+                          {job.title}
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {job.description || "No description provided"}
+                        </p>
                       </div>
-                    </CardTitle>
-                    <CardDescription>{job.experience}</CardDescription>
+                      <div className={`p-3 rounded-2xl ${gradient} shadow-md flex-shrink-0`}>
+                        <Briefcase className="h-5 w-5 text-white" />
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {job.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {skills.slice(0, 3).map((skill: string, idx: number) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {skills.length > 3 && (
-                        <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                          +{skills.length - 3} more
-                        </span>
-                      )}
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                          Required Skills
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {job.skills.split(",").map((skill, i) => (
+                            <span
+                              key={i}
+                              className="px-3 py-1 rounded-full text-xs font-medium"
+                              style={{
+                                backgroundColor: `${color}20`,
+                                color: color,
+                              }}
+                            >
+                              {skill.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                          Experience
+                        </p>
+                        <p className="text-sm font-medium">{job.experience}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-2"
+                        onClick={() => {
+                          setEditingJob(job);
+                          setIsEditOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDelete(job.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -189,118 +261,69 @@ export default function JobsPage() {
             })}
           </div>
         )}
+
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">Edit Job</DialogTitle>
+              <DialogDescription>Update job role details</DialogDescription>
+            </DialogHeader>
+            {editingJob && (
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-title">Job Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={editingJob.title}
+                    onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editingJob.description}
+                    onChange={(e) =>
+                      setEditingJob({ ...editingJob, description: e.target.value })
+                    }
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-skills">Required Skills</Label>
+                  <Input
+                    id="edit-skills"
+                    value={editingJob.skills}
+                    onChange={(e) => setEditingJob({ ...editingJob, skills: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-experience">Experience Required</Label>
+                  <Input
+                    id="edit-experience"
+                    value={editingJob.experience}
+                    onChange={(e) =>
+                      setEditingJob({ ...editingJob, experience: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdate}
+                disabled={updateMutation.isPending}
+                className="gradient-coral text-white"
+              >
+                {updateMutation.isPending ? "Updating..." : "Update Job"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Job Role</DialogTitle>
-            <DialogDescription>Add a new job position to the system</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="title">Job Title</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g., Senior Developer"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Job description and responsibilities"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="experience">Experience Range</Label>
-              <Input
-                id="experience"
-                value={formData.experience}
-                onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                placeholder="e.g., 1-2 years"
-              />
-            </div>
-            <div>
-              <Label htmlFor="skills">Required Skills (comma-separated)</Label>
-              <Input
-                id="skills"
-                value={formData.skills}
-                onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-                placeholder="e.g., React, TypeScript, Node.js"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Creating..." : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Job Role</DialogTitle>
-            <DialogDescription>Update job position details</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-title">Job Title</Label>
-              <Input
-                id="edit-title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-experience">Experience Range</Label>
-              <Input
-                id="edit-experience"
-                value={formData.experience}
-                onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-skills">Required Skills (comma-separated)</Label>
-              <Input
-                id="edit-skills"
-                value={formData.skills}
-                onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Updating..." : "Update"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 }
-
