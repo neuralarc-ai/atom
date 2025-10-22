@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import JobsPage from "./pages/JobsPage";
 import TestsPage from "./pages/TestsPage";
 import CandidatesPage from "./pages/CandidatesPage";
+import CandidateResultsPage from "./pages/CandidateResultsPage";
 import TestPage from "./pages/TestPage";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/admin/jobs"} component={JobsPage} />
       <Route path={"/admin/tests"} component={TestsPage} />
       <Route path={"/admin/candidates"} component={CandidatesPage} />
+      <Route path="/admin/candidates/:id" component={CandidateResultsPage} />
       <Route path={"/test/:testId"} component={TestPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

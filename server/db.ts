@@ -177,3 +177,11 @@ export async function updateCandidate(id: string, data: Partial<InsertCandidate>
   if (!db) throw new Error("Database not available");
   return await db.update(candidates).set(data).where(eq(candidates.id, id));
 }
+
+
+export async function deleteCandidate(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(candidates).where(eq(candidates.id, id));
+}
+

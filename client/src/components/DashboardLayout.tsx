@@ -64,17 +64,13 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <div className="relative group">
-              <div className="relative">
-                <img
-                  src={APP_LOGO}
-                  alt={APP_TITLE}
-                  className="h-20 w-20 rounded-xl object-cover shadow"
-                />
+              <div className="h-24 w-24 rounded-3xl gradient-coral flex items-center justify-center shadow-2xl">
+                <span className="text-white font-bold text-5xl">A</span>
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">{APP_TITLE}</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-4xl font-bold tracking-tight text-gradient">Atom HR</h1>
+              <p className="text-base text-muted-foreground">
                 Please sign in to continue
               </p>
             </div>
@@ -174,11 +170,9 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-3 pl-2 group-data-[collapsible=icon]:px-0 transition-all w-full">
               {isCollapsed ? (
                 <div className="relative h-8 w-8 shrink-0 group">
-                  <img
-                    src={APP_LOGO}
-                    className="h-8 w-8 rounded-md object-cover ring-1 ring-border"
-                    alt="Logo"
-                  />
+                  <div className="h-8 w-8 rounded-xl gradient-coral flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">A</span>
+                  </div>
                   <button
                     onClick={toggleSidebar}
                     className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -189,13 +183,11 @@ function DashboardLayoutContent({
               ) : (
                 <>
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={APP_LOGO}
-                      className="h-8 w-8 rounded-md object-cover ring-1 ring-border shrink-0"
-                      alt="Logo"
-                    />
-                    <span className="font-semibold tracking-tight truncate">
-                      {APP_TITLE}
+                    <div className="h-8 w-8 rounded-xl gradient-coral flex items-center justify-center shrink-0">
+                      <span className="text-white font-bold text-lg">A</span>
+                    </div>
+                    <span className="font-bold tracking-tight truncate text-xl text-gradient">
+                      Atom HR
                     </span>
                   </div>
                   <button
@@ -236,8 +228,8 @@ function DashboardLayoutContent({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="h-9 w-9 border shrink-0">
-                    <AvatarFallback className="text-xs font-medium">
+                  <Avatar className="h-9 w-9 gradient-mint shrink-0">
+                    <AvatarFallback className="bg-transparent text-dark-green font-bold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

@@ -289,6 +289,16 @@ Make sure the questions are relevant to the job role and test the candidate's kn
 
         return { success: true, score, total: questions.length };
       }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { deleteCandidate } = await import("./db");
+        await deleteCandidate(input.id);
+        return { success: true };
+      }),
   }),
 });
 
