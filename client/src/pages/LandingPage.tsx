@@ -380,13 +380,18 @@ export default function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[#A8D5BA] py-8">
+      <div className="border-t border-[#A8D5BA] py-8 bg-gradient-to-r from-[#FFF5EE] to-[#F5F5DC]">
         <div className="container mx-auto px-4 text-center text-gray-600">
-          <p className="text-sm">
+          <p className="text-sm font-semibold text-[#1B5E20]">
             © 2025 Neural Arc Inc. All rights reserved.
           </p>
           <p className="text-xs mt-2">
-            Atom - Internal Talent Assessment Platform
+            Atom - Internal Talent Assessment Platform | Version 2.0
+          </p>
+          <p className="text-xs mt-1">
+            <a href="https://neuralarc.ai" target="_blank" rel="noopener noreferrer" className="text-[#FF6347] hover:underline">
+              neuralarc.ai
+            </a>
           </p>
         </div>
       </div>
