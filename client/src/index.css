@@ -43,19 +43,19 @@
 }
 
 :root {
-  /* Atom HR Custom Color Palette */
+  /* Atom Custom Color Palette - Updated */
   --primary: oklch(0.65 0.18 25);  /* Coral #FF6347 */
   --primary-foreground: oklch(1 0 0);
   --sidebar-primary: oklch(0.65 0.18 25);
   --sidebar-primary-foreground: oklch(1 0 0);
   --chart-1: oklch(0.65 0.18 25);  /* Coral */
-  --chart-2: oklch(0.78 0.12 100); /* Lime */
-  --chart-3: oklch(0.8 0.08 165);  /* Mint */
-  --chart-4: oklch(0.3 0.1 170);   /* Dark Green */
-  --chart-5: oklch(0.92 0.03 80);  /* Cream */
+  --chart-2: oklch(0.25 0.12 160); /* Dark Green */
+  --chart-3: oklch(0.82 0.12 105); /* Lime Yellow */
+  --chart-4: oklch(0.85 0.06 175); /* Light Mint */
+  --chart-5: oklch(0.95 0.01 80);  /* Cream */
   --radius: 1rem;
-  --background: oklch(0.95 0.02 80);  /* Cream background */
-  --foreground: oklch(0.25 0.08 170); /* Dark green text */
+  --background: oklch(0.96 0.01 80);  /* Cream background */
+  --foreground: oklch(0.25 0.12 160); /* Dark green text */
   --card: oklch(1 0 0);  /* White cards */
   --card-foreground: oklch(0.25 0.08 170);
   --popover: oklch(1 0 0);
@@ -71,11 +71,11 @@
   --border: oklch(0.88 0.04 165);  /* Light mint border */
   --input: oklch(0.88 0.04 165);
   --ring: oklch(0.65 0.18 25);  /* Coral ring */
-  --sidebar: oklch(0.8 0.08 165);  /* Mint #A8D5BA sidebar */
-  --sidebar-foreground: oklch(0.25 0.08 170);  /* Dark green text */
-  --sidebar-accent: oklch(0.75 0.1 165);  /* Darker mint for hover */
-  --sidebar-accent-foreground: oklch(0.98 0 0);  /* White text on hover */
-  --sidebar-border: oklch(0.7 0.09 165);  /* Darker mint border */
+  --sidebar: oklch(0.85 0.06 175);  /* Light Mint sidebar */
+  --sidebar-foreground: oklch(0.25 0.12 160);  /* Dark green text */
+  --sidebar-accent: oklch(0.82 0.08 175);  /* Darker mint for hover */
+  --sidebar-accent-foreground: oklch(0.25 0.12 160);  /* Dark green text on hover */
+  --sidebar-border: oklch(0.8 0.08 175);  /* Darker mint border */
   --sidebar-ring: oklch(0.65 0.18 25);  /* Coral ring */
 }
 
