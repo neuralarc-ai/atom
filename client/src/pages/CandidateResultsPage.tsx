@@ -38,10 +38,11 @@ export default function CandidateResultsPage() {
 
   const test = tests.find((t) => t.id === candidate.testId);
   const job = test ? jobs.find((j) => j.id === test.jobId) : null;
-  const questions = test ? JSON.parse(test.questions) : [];
+  const questions = candidate.questions ? JSON.parse(candidate.questions) : [];
   const answers = candidate.answers ? JSON.parse(candidate.answers) : [];
-  const score = parseInt(candidate.score || "0");
-  const percentage = (score / 21) * 100;
+  const score = candidate.score || 0;
+  const totalQuestions = candidate.totalQuestions || 21;
+  const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
 
   return (
     <DashboardLayout>

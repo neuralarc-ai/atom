@@ -49,9 +49,9 @@ export default function CandidatesPage() {
     });
   };
 
-  const getScoreColor = (score: string | null) => {
+  const getScoreColor = (score: number | null) => {
     if (!score) return "text-muted-foreground";
-    const numScore = parseInt(score);
+    const numScore = score;
     if (numScore >= 18) return "text-green-600 font-bold";
     if (numScore >= 15) return "text-lime-600 font-semibold";
     if (numScore >= 10) return "text-yellow-600 font-medium";

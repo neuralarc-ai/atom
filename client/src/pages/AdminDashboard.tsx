@@ -12,8 +12,8 @@ export default function AdminDashboard() {
   
   // Calculate percentage for each candidate
   const candidatesWithPercentage = completedCandidates.map((c) => {
-    const score = parseInt(c.score?.split("/")[0] || "0");
-    const total = parseInt(c.score?.split("/")[1] || "21");
+    const score = c.score || 0;
+    const total = c.totalQuestions || 21;
     const percentage = total > 0 ? (score / total) * 100 : 0;
     return { ...c, percentage, score, total };
   });
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   const averageScore =
     completedCandidates.length > 0
       ? completedCandidates.reduce((sum, c) => {
-          const score = parseInt(c.score?.split("/")[0] || "0");
+          const score = c.score || 0;
           return sum + score;
         }, 0) / completedCandidates.length
       : 0;

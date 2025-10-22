@@ -1,4 +1,4 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -51,7 +51,15 @@ export const candidates = mysqlTable("candidates", {
   testId: varchar("testId", { length: 64 }).notNull(),
   questions: text("questions"), // JSON stringified array of questions for this candidate
   answers: text("answers"), // JSON stringified array
-  score: varchar("score", { length: 10 }),
+  score: int("score"), // Store as integer
+  totalQuestions: int("totalQuestions"), // Total number of questions
+  status: mysqlEnum("status", ["in_progress", "completed", "locked_out", "reappearance_requested"]).default("in_progress").notNull(),
+  lockoutReason: text("lockoutReason"), // Reason for lockout (e.g., "tab_switch", "eye_tracking")
+  videoRecordingUrl: text("videoRecordingUrl"), // URL to proctoring video
+  eyeTrackingData: text("eyeTrackingData"), // JSON stringified eye tracking events
+  reappearanceRequestedAt: timestamp("reappearanceRequestedAt"),
+  reappearanceApprovedAt: timestamp("reappearanceApprovedAt"),
+  reappearanceApprovedBy: varchar("reappearanceApprovedBy", { length: 64 }),
   startedAt: timestamp("startedAt").defaultNow(),
   completedAt: timestamp("completedAt"),
 });

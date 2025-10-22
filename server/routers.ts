@@ -380,7 +380,9 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         // Update candidate
         await updateCandidate(input.candidateId, {
           answers: JSON.stringify(input.answers),
-          score: score.toString(),
+          score: score,
+          totalQuestions: questions.length,
+          status: "completed",
           completedAt: new Date(),
         });
 
@@ -391,6 +393,59 @@ Make sure the questions are relevant to the job role and test the candidate's kn
           percentage: Math.round(percentage),
           passed: percentage >= 85,
         };
+      }),
+    lockout: publicProcedure
+      .input(
+        z.object({
+          candidateId: z.string(),
+          reason: z.string(),
+          answers: z.array(z.number()),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateCandidate, getCandidateById } = await import("./db");
+
+        const candidate = await getCandidateById(input.candidateId);
+        if (!candidate) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Candidate not found" });
+        }
+
+        await updateCandidate(input.candidateId, {
+          status: "locked_out",
+          lockoutReason: input.reason,
+          answers: JSON.stringify(input.answers),
+        });
+
+        return { success: true };
+      }),
+    requestReappearance: publicProcedure
+      .input(z.object({ candidateId: z.string() }))
+      .mutation(async ({ input }) => {
+        const { updateCandidate } = await import("./db");
+
+        await updateCandidate(input.candidateId, {
+          status: "reappearance_requested",
+          reappearanceRequestedAt: new Date(),
+        });
+
+        return { success: true };
+      }),
+    approveReappearance: protectedProcedure
+      .input(z.object({ candidateId: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { updateCandidate } = await import("./db");
+
+        await updateCandidate(input.candidateId, {
+          status: "in_progress",
+          reappearanceApprovedAt: new Date(),
+          reappearanceApprovedBy: ctx.user.id,
+          lockoutReason: null,
+        });
+
+        return { success: true };
       }),
     delete: protectedProcedure
       .input(z.object({ id: z.string() }))

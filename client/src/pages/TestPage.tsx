@@ -21,6 +21,7 @@ export default function TestPage() {
   const [result, setResult] = useState<any>(null);
   const [showWarning, setShowWarning] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
+  const [lockoutReason, setLockoutReason] = useState<string>("");
 
   const { data: test } = trpc.tests.getById.useQuery({ id: testId || "" }, { enabled: !!testId });
   const { data: candidate } = trpc.candidates.getById.useQuery(
@@ -39,6 +40,12 @@ export default function TestPage() {
     onSuccess: (data) => {
       setResult(data);
       setIsSubmitting(false);
+    },
+  });
+
+  const lockoutMutation = trpc.candidates.lockout.useMutation({
+    onSuccess: () => {
+      // Lockout successful, show lockout screen
     },
   });
 
@@ -62,18 +69,32 @@ export default function TestPage() {
     if (!hasStarted || result || isLocked) return;
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden && !isLocked) {
         setIsLocked(true);
-        alert("Test locked! You switched tabs or minimized the browser. Your test has been terminated.");
-        handleSubmit();
+        setLockoutReason("You switched tabs or minimized the browser window");
+        // Submit with locked_out status
+        if (candidateId) {
+          lockoutMutation.mutate({ 
+            candidateId, 
+            reason: "tab_switch",
+            answers 
+          });
+        }
       }
     };
 
     const handleBlur = () => {
-      if (!document.hidden) {
+      if (!document.hidden && !isLocked) {
         setIsLocked(true);
-        alert("Test locked! You changed browser focus. Your test has been terminated.");
-        handleSubmit();
+        setLockoutReason("You changed browser focus or switched windows");
+        // Submit with locked_out status
+        if (candidateId) {
+          lockoutMutation.mutate({ 
+            candidateId, 
+            reason: "focus_change",
+            answers 
+          });
+        }
       }
     };
 
@@ -131,6 +152,61 @@ export default function TestPage() {
   };
 
   const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
+
+  const requestReappearanceMutation = trpc.candidates.requestReappearance.useMutation({
+    onSuccess: () => {
+      alert("Reappearance request submitted! Please wait for admin approval.");
+    },
+  });
+
+  // Show lockout screen if locked
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl border-0 shadow-2xl">
+            <CardContent className="p-12">
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="h-12 w-12 text-red-600" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-red-600 mb-3">Test Locked</h1>
+                  <p className="text-xl text-muted-foreground mb-6">
+                    Your test has been terminated
+                  </p>
+                </div>
+                <div className="p-8 rounded-3xl bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200">
+                  <p className="text-lg text-red-700 font-medium mb-4">
+                    Reason: {lockoutReason}
+                  </p>
+                  <p className="text-base text-muted-foreground">
+                    You violated the test rules by switching tabs, minimizing the browser, or changing focus during the assessment.
+                  </p>
+                </div>
+                <div className="pt-6 border-t space-y-4">
+                  <p className="text-base text-muted-foreground leading-relaxed">
+                    If you believe this was a mistake or you had a technical issue, you can request to retake the test.
+                    An admin will review your request.
+                  </p>
+                  <Button
+                    onClick={() => requestReappearanceMutation.mutate({ candidateId: candidateId || "" })}
+                    disabled={requestReappearanceMutation.isPending}
+                    className="gradient-coral text-white"
+                  >
+                    {requestReappearanceMutation.isPending ? "Requesting..." : "Request Reappearance"}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="text-center py-6 text-sm text-muted-foreground bg-white/30 backdrop-blur-sm">
+          Powered and Created by <span className="font-semibold">Helium AI</span>
+        </div>
+      </div>
+    );
+  }
 
   if (result) {
     return (
