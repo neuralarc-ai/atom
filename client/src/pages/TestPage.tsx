@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
 import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "wouter";
 
 export default function TestPage() {
@@ -25,6 +25,9 @@ export default function TestPage() {
   const [showRequestSuccess, setShowRequestSuccess] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraError, setCameraError] = useState<string>("");
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   const { data: test } = trpc.tests.getById.useQuery({ id: testId || "" }, { enabled: !!testId });
   const { data: candidate } = trpc.candidates.getById.useQuery(
@@ -130,6 +133,26 @@ export default function TestPage() {
       });
       setCameraStream(stream);
       setCameraError("");
+
+      // Start recording
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp8',
+      });
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        setVideoBlob(blob);
+      };
+
+      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorderRef.current = mediaRecorder;
+
       startMutation.mutate({ testId: testId || "", name, email });
     } catch (error) {
       console.error("Camera access denied:", error);
@@ -158,6 +181,15 @@ export default function TestPage() {
   const handleSubmit = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    
+    // Stop recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    
     submitMutation.mutate({ candidateId: candidateId || "", answers });
   };
 
@@ -174,6 +206,23 @@ export default function TestPage() {
       setShowRequestSuccess(true);
     },
   });
+
+  const uploadVideoMutation = trpc.candidates.uploadVideo.useMutation();
+
+  // Upload video when blob is ready
+  useEffect(() => {
+    if (videoBlob && candidateId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        uploadVideoMutation.mutate({
+          candidateId,
+          videoData: base64,
+        });
+      };
+      reader.readAsDataURL(videoBlob);
+    }
+  }, [videoBlob, candidateId]);
 
   // Show lockout screen if locked
   if (isLocked) {

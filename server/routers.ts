@@ -247,8 +247,31 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { createCandidate, getTestById, getJobById } = await import("./db");
+        const { createCandidate, getTestById, getJobById, getCandidateByEmailAndTest } = await import("./db");
         const { invokeLLM } = await import("./_core/llm");
+
+        // Check if candidate with this email has already attempted this test
+        const existingCandidate = await getCandidateByEmailAndTest(input.email, input.testId);
+        if (existingCandidate) {
+          // If locked out and not approved, deny access
+          if (existingCandidate.status === 'locked_out' && !existingCandidate.reappearanceApprovedAt) {
+            throw new TRPCError({ 
+              code: "FORBIDDEN", 
+              message: "You have been locked out of this test. Please request reappearance approval from the admin." 
+            });
+          }
+          // If completed, deny retake
+          if (existingCandidate.status === 'completed') {
+            throw new TRPCError({ 
+              code: "FORBIDDEN", 
+              message: "You have already completed this test." 
+            });
+          }
+          // If in progress (not locked), allow to continue
+          if (existingCandidate.status === 'in_progress' && !existingCandidate.reappearanceApprovedAt) {
+            return { candidateId: existingCandidate.id };
+          }
+        }
 
         // Get test and job details
         const test = await getTestById(input.testId);
@@ -446,6 +469,36 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         });
 
         return { success: true };
+      }),
+    uploadVideo: publicProcedure
+      .input(
+        z.object({
+          candidateId: z.string(),
+          videoData: z.string(), // base64 encoded video
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { storagePut } = await import("./storage");
+        const { updateCandidate } = await import("./db");
+
+        // Convert base64 to buffer
+        const base64Data = input.videoData.split(',')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+
+        // Upload to S3
+        const timestamp = Date.now();
+        const { url } = await storagePut(
+          `test-recordings/${input.candidateId}-${timestamp}.webm`,
+          buffer,
+          'video/webm'
+        );
+
+        // Update candidate with video URL
+        await updateCandidate(input.candidateId, {
+          videoRecordingUrl: url,
+        });
+
+        return { success: true, videoUrl: url };
       }),
     delete: protectedProcedure
       .input(z.object({ id: z.string() }))

@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, jobs, InsertJob, tests, InsertTest, candidates, InsertCandidate } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -184,6 +184,16 @@ export async function updateCandidate(id: string, data: Partial<InsertCandidate>
   return await db.update(candidates).set(data).where(eq(candidates.id, id));
 }
 
+export async function getCandidateByEmailAndTest(email: string, testId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(candidates)
+    .where(and(eq(candidates.email, email), eq(candidates.testId, testId)))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
 
 export async function deleteCandidate(id: string) {
   const db = await getDb();
