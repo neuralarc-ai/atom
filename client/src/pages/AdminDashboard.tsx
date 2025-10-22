@@ -332,39 +332,62 @@ export default function AdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobs.map((job) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {jobs.map((job, index) => {
                 const jobTests = tests.filter((t) => t.jobId === job.id);
                 const jobCandidates = candidates.filter((c) =>
                   jobTests.some((t) => t.id === c.testId)
                 );
-                const borderColor = 
-                  job.id.charCodeAt(0) % 3 === 0 ? "border-l-[#FF6347]" :
-                  job.id.charCodeAt(0) % 3 === 1 ? "border-l-[#C4D82E]" : "border-l-[#A8D5BA]";
+                
+                const gradients = [
+                  { bg: "from-orange-500 to-red-500", text: "text-orange-600", icon: "bg-orange-100" },
+                  { bg: "from-lime-500 to-yellow-500", text: "text-lime-600", icon: "bg-lime-100" },
+                  { bg: "from-teal-500 to-cyan-500", text: "text-teal-600", icon: "bg-teal-100" },
+                  { bg: "from-purple-500 to-pink-500", text: "text-purple-600", icon: "bg-purple-100" },
+                ];
+                const gradient = gradients[index % gradients.length];
                 
                 return (
                   <div
                     key={job.id}
-                    className={`p-4 rounded-xl border-l-4 ${borderColor} bg-gradient-to-r from-white to-gray-50 hover:shadow-md transition-all`}
+                    className="group relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-white hover:border-gray-300 hover:shadow-2xl transition-all duration-300 cursor-pointer"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-lg leading-tight">{job.title}</h3>
-                      <div className={`p-2 rounded-lg ${
-                        job.id.charCodeAt(0) % 3 === 0 ? "gradient-coral" :
-                        job.id.charCodeAt(0) % 3 === 1 ? "gradient-lime" : "gradient-mint"
-                      }`}>
-                        <Briefcase className="h-4 w-4 text-white" />
-                      </div>
+                    {/* Gradient Header */}
+                    <div className={`h-24 bg-gradient-to-br ${gradient.bg} relative overflow-hidden`}>
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                      <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
+                      <div className="absolute -left-4 -bottom-4 w-24 h-24 rounded-full bg-white/10" />
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{job.experience}</p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <ClipboardList className="h-3 w-3" />
-                        <span>{jobTests.length} tests</span>
+                    
+                    {/* Content */}
+                    <div className="p-5 -mt-8 relative">
+                      {/* Icon */}
+                      <div className={`w-16 h-16 rounded-2xl ${gradient.icon} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                        <Briefcase className={`h-8 w-8 ${gradient.text}`} />
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        <span>{jobCandidates.length} candidates</span>
+                      
+                      {/* Title */}
+                      <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2 min-h-[3.5rem]">{job.title}</h3>
+                      
+                      {/* Experience */}
+                      <p className="text-sm text-muted-foreground mb-4">{job.experience}</p>
+                      
+                      {/* Stats */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <div className={`p-1.5 rounded-lg ${gradient.icon}`}>
+                            <ClipboardList className={`h-3.5 w-3.5 ${gradient.text}`} />
+                          </div>
+                          <span className="text-sm font-semibold">{jobTests.length}</span>
+                          <span className="text-xs text-muted-foreground">tests</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`p-1.5 rounded-lg ${gradient.icon}`}>
+                            <Users className={`h-3.5 w-3.5 ${gradient.text}`} />
+                          </div>
+                          <span className="text-sm font-semibold">{jobCandidates.length}</span>
+                          <span className="text-xs text-muted-foreground">candidates</span>
+                        </div>
                       </div>
                     </div>
                   </div>
