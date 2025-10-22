@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, jobId, shortCode, createdAt FROM tests ORDER BY createdAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id, jobId, shortCode, createdAt FROM tests ORDER BY createdAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "d7ed55e4-c25d-435e-8bbc-b593f49c24ad",
+      "jobId": "144f2965-a9f4-473d-8ddd-2b228b41d9ac",
+      "shortCode": "G8MQVT",
+      "createdAt": "2025-10-22 16:46:09"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tjobId\tshortCode\tcreatedAt\nd7ed55e4-c25d-435e-8bbc-b593f49c24ad\t144f2965-a9f4-473d-8ddd-2b228b41d9ac\tG8MQVT\t2025-10-22 16:46:09\n",
+  "stderr": "",
+  "execution_time_ms": 1677
+}
