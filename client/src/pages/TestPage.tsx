@@ -119,12 +119,8 @@ export default function TestPage() {
       alert("Please fill in all fields");
       return;
     }
-    if (showWarning) {
-      setShowWarning(false);
-      return;
-    }
 
-    // Start the test
+    // Start the test immediately
     startMutation.mutate({ testId: testId || "", name, email });
   };
 
@@ -545,61 +541,53 @@ export default function TestPage() {
               </ul>
             </div>
 
-            {showWarning ? (
-              <div className="space-y-4">
-                <div className="p-6 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300">
-                  <h3 className="font-bold text-lg mb-3 text-orange-900 flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    Important Warning
-                  </h3>
-                  <ul className="space-y-2 text-sm text-orange-800">
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
-                      <span>Do NOT minimize the browser window</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
-                      <span>Do NOT close or refresh the page</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
-                      <span>Do NOT switch tabs or change browser focus</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
-                      <span className="font-semibold">Your test will be AUTOMATICALLY TERMINATED if you violate any of these rules</span>
-                    </li>
-                  </ul>
-                </div>
-                <Button
-                  size="lg"
-                  className="w-full h-12 gradient-coral text-white text-lg"
-                  onClick={handleStart}
-                >
-                  I Understand, Start Test
-                </Button>
+            <div className="space-y-4">
+              <div className="p-6 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300">
+                <h3 className="font-bold text-lg mb-3 text-orange-900 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Important Warning
+                </h3>
+                <ul className="space-y-2 text-sm text-orange-800">
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
+                    <span>Do NOT minimize the browser window</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
+                    <span>Do NOT close or refresh the page</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
+                    <span>Do NOT switch tabs or change browser focus</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600 mt-1.5 flex-shrink-0" />
+                    <span className="font-semibold">Your test will be AUTOMATICALLY TERMINATED if you violate any of these rules</span>
+                  </li>
+                </ul>
               </div>
-            ) : startMutation.isPending ? (
-                <div className="space-y-4">
-                  <div className="p-6 rounded-2xl bg-gradient-to-r from-lime-50 to-green-50 border-2 border-lime-300 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-3">
-                      <div className="animate-spin h-6 w-6 border-3 border-lime-600 border-t-transparent rounded-full" />
-                      <span className="font-bold text-lg text-lime-900">Preparing Your Test...</span>
-                    </div>
-                    <p className="text-sm text-lime-800">
-                      We are generating personalized questions for you. This may take a few moments.
-                    </p>
+              
+              {startMutation.isPending ? (
+                <div className="p-6 rounded-2xl bg-gradient-to-r from-lime-50 to-green-50 border-2 border-lime-300 text-center">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="animate-spin h-6 w-6 border-3 border-lime-600 border-t-transparent rounded-full" />
+                    <span className="font-bold text-lg text-lime-900">Preparing Your Test...</span>
                   </div>
+                  <p className="text-sm text-lime-800">
+                    We are generating personalized questions for you. This may take a few moments.
+                  </p>
                 </div>
               ) : (
                 <Button
                   size="lg"
                   className="w-full h-12 gradient-coral text-white text-lg"
                   onClick={handleStart}
+                  disabled={!name || !email}
                 >
-                  Start Test
+                  I Understand, Start Test
                 </Button>
               )}
+            </div>
           </div>
         </CardContent>
       </Card>
