@@ -69,7 +69,7 @@ export default function DashboardLayout({
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-4xl font-bold tracking-tight text-gradient">Atom HR</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-gradient">Atom</h1>
               <p className="text-base text-muted-foreground">
                 Please sign in to continue
               </p>
@@ -170,9 +170,17 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-3 pl-2 group-data-[collapsible=icon]:px-0 transition-all w-full">
               {isCollapsed ? (
                 <div className="relative h-8 w-8 shrink-0 group">
-                  <div className="h-8 w-8 rounded-xl gradient-coral flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">A</span>
-                  </div>
+                  <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad-collapsed)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="url(#grad-collapsed)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="url(#grad-collapsed)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <defs>
+                      <linearGradient id="grad-collapsed" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#FF6347"/>
+                        <stop offset="1" stopColor="#C4D82E"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
                   <button
                     onClick={toggleSidebar}
                     className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -183,11 +191,19 @@ function DashboardLayoutContent({
               ) : (
                 <>
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 rounded-xl gradient-coral flex items-center justify-center shrink-0">
-                      <span className="text-white font-bold text-lg">A</span>
-                    </div>
+                    <svg className="h-8 w-8 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 17L12 22L22 17" stroke="url(#grad1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 12L12 17L22 12" stroke="url(#grad1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <defs>
+                        <linearGradient id="grad1" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                          <stop stopColor="#FF6347"/>
+                          <stop offset="1" stopColor="#C4D82E"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
                     <span className="font-bold tracking-tight truncate text-xl text-gradient">
-                      Atom HR
+                      Atom
                     </span>
                   </div>
                   <button
@@ -224,7 +240,10 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3">
+          <SidebarFooter className="p-3 space-y-3">
+            <div className="text-center text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+              Powered and Created by <span className="font-semibold">Helium AI</span>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">

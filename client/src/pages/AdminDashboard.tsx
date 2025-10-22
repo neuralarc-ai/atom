@@ -91,7 +91,7 @@ export default function AdminDashboard() {
           <div className="absolute inset-0 gradient-coral opacity-10 rounded-3xl blur-3xl" />
           <div className="relative">
             <h1 className="text-5xl font-bold tracking-tight text-gradient mb-3">Dashboard</h1>
-            <p className="text-muted-foreground text-xl">Welcome to Atom HR Portal</p>
+            <p className="text-muted-foreground text-xl">Welcome to Atom</p>
           </div>
         </div>
 
