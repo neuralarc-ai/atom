@@ -1,0 +1,25 @@
+{
+  "query": "SELECT id, jobId, complexity FROM tests ORDER BY createdAt DESC LIMIT 3",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id, jobId, complexity FROM tests ORDER BY createdAt DESC LIMIT 3",
+  "rows": [
+    {
+      "id": "50e18f1e-38f7-4b38-95c3-5c6a6347fa67",
+      "jobId": "37a3dc4e-5dc4-4860-98f6-a54273a0b171",
+      "complexity": "high"
+    },
+    {
+      "id": "2d33f167-700b-4d3c-a5e4-01cfc23035a7",
+      "jobId": "3aeaa3d7-4818-4720-bef2-d44739fa3c05",
+      "complexity": "medium"
+    },
+    {
+      "id": "e1147403-80a2-4a7e-9f09-e1d4e7e82701",
+      "jobId": "b4aabd5e-770d-4529-80ef-97856fc43a9d",
+      "complexity": "medium"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tjobId\tcomplexity\n50e18f1e-38f7-4b38-95c3-5c6a6347fa67\t37a3dc4e-5dc4-4860-98f6-a54273a0b171\thigh\n2d33f167-700b-4d3c-a5e4-01cfc23035a7\t3aeaa3d7-4818-4720-bef2-d44739fa3c05\tmedium\ne1147403-80a2-4a7e-9f09-e1d4e7e82701\tb4aabd5e-770d-4529-80ef-97856fc43a9d\tmedium\n",
+  "stderr": "",
+  "execution_time_ms": 2051
+}

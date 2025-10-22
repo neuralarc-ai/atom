@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock } from "lucide-react";
+import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock, Trophy, AlertCircle } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data: jobs = [], isLoading: jobsLoading } = trpc.jobs.list.useQuery();
@@ -9,22 +9,34 @@ export default function AdminDashboard() {
   const { data: candidates = [], isLoading: candidatesLoading } = trpc.candidates.list.useQuery();
 
   const completedCandidates = candidates.filter((c) => c.completedAt);
+  
+  // Calculate percentage for each candidate
+  const candidatesWithPercentage = completedCandidates.map((c) => {
+    const score = parseInt(c.score?.split("/")[0] || "0");
+    const total = parseInt(c.score?.split("/")[1] || "21");
+    const percentage = total > 0 ? (score / total) * 100 : 0;
+    return { ...c, percentage, score, total };
+  });
+
+  // Sort: Top performers (85%+) first, then others
+  const topPerformers = candidatesWithPercentage.filter((c) => c.percentage >= 85);
+  const otherCandidates = candidatesWithPercentage.filter((c) => c.percentage < 85);
+  const sortedCandidates = [...topPerformers, ...otherCandidates];
+
   const averageScore =
     completedCandidates.length > 0
-      ? completedCandidates.reduce((sum, c) => sum + (parseInt(c.score || "0") || 0), 0) /
-        completedCandidates.length
+      ? completedCandidates.reduce((sum, c) => {
+          const score = parseInt(c.score?.split("/")[0] || "0");
+          return sum + score;
+        }, 0) / completedCandidates.length
       : 0;
+
   const completionRate =
     candidates.length > 0 ? (completedCandidates.length / candidates.length) * 100 : 0;
 
-  // Calculate success rate (candidates scoring 15+)
-  const successfulCandidates = completedCandidates.filter((c) => parseInt(c.score || "0") >= 15);
   const successRate =
-    completedCandidates.length > 0
-      ? (successfulCandidates.length / completedCandidates.length) * 100
-      : 0;
+    completedCandidates.length > 0 ? (topPerformers.length / completedCandidates.length) * 100 : 0;
 
-  // Get job stats
   const jobStats = jobs.map((job) => {
     const jobTests = tests.filter((t) => t.jobId === job.id);
     const jobCandidates = jobTests.flatMap((test) =>
@@ -75,168 +87,175 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8 pb-8">
-        {/* Header */}
         <div className="relative">
-          <div className="absolute inset-0 gradient-lime opacity-10 rounded-3xl blur-3xl" />
+          <div className="absolute inset-0 gradient-coral opacity-10 rounded-3xl blur-3xl" />
           <div className="relative">
             <h1 className="text-5xl font-bold tracking-tight text-gradient mb-3">Dashboard</h1>
             <p className="text-muted-foreground text-xl">Welcome to Atom HR Portal</p>
           </div>
         </div>
 
-        {/* Bento Grid Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, idx) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
             <Card
-              key={stat.title}
-              className="bento-card overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              key={index}
+              className="bento-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
             >
               <div className={`h-3 ${stat.gradient}`} />
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-3 rounded-2xl ${stat.gradient} shadow-md`}>
-                  <stat.icon className="h-5 w-5 text-white" />
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-3 rounded-2xl ${stat.gradient} shadow-md`}>
+                    <stat.icon className="h-5 w-5 text-white" />
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="pb-6">
-                <div className={`text-4xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+              <CardContent>
+                <div className={`text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
                 <p className="text-sm text-muted-foreground">{stat.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Bento Grid Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Candidates - Spans 2 columns */}
-          <Card className="bento-card lg:col-span-2 border-0 shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-2xl font-bold flex items-center gap-3">
-                <div className="p-2 rounded-xl gradient-mint">
-                  <Users className="h-5 w-5 text-white" />
+          <Card className="bento-card border-0 shadow-lg lg:col-span-2">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl gradient-mint">
+                  <Users className="h-6 w-6 text-white" />
                 </div>
-                Recent Candidates
-              </CardTitle>
+                <CardTitle className="text-2xl">Recent Candidates</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
-              {completedCandidates.length === 0 ? (
+              {sortedCandidates.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                   <p className="text-muted-foreground">No completed tests yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {completedCandidates.slice(0, 5).map((candidate) => (
-                    <div
-                      key={candidate.id}
-                      className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-accent/5 to-accent/10 hover:from-accent/10 hover:to-accent/20 transition-all group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full gradient-coral flex items-center justify-center text-white font-bold text-lg shadow-md">
-                          {candidate.name.charAt(0).toUpperCase()}
+                <div className="space-y-4">
+                  {sortedCandidates.slice(0, 5).map((candidate) => {
+                    const isPassed = candidate.percentage >= 85;
+                    return (
+                      <div
+                        key={candidate.id}
+                        className={`flex items-center justify-between p-5 rounded-2xl transition-all ${
+                          isPassed
+                            ? "bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200"
+                            : "bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                              isPassed ? "gradient-lime" : "gradient-coral"
+                            }`}
+                          >
+                            {candidate.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-lg">{candidate.name}</p>
+                            <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                            {isPassed ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <Trophy className="h-4 w-4 text-green-600" />
+                                <span className="text-xs font-medium text-green-600">Top Performer</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 mt-1">
+                                <AlertCircle className="h-4 w-4 text-orange-600" />
+                                <span className="text-xs font-medium text-orange-600">Did not pass</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-base">{candidate.name}</p>
-                          <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                        <div className="text-right">
+                          <div
+                            className={`text-3xl font-bold ${
+                              isPassed ? "text-green-600" : "text-orange-600"
+                            }`}
+                          >
+                            {candidate.percentage.toFixed(0)}%
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {candidate.score}/{candidate.total}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(candidate.completedAt!).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div
-                          className={`text-2xl font-bold ${
-                            parseInt(candidate.score || "0") >= 15
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {candidate.score || "0"}/21
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(candidate.completedAt!).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Success Rate Card - Spans 1 column */}
-          <Card className="bento-card border-0 shadow-lg gradient-lime text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12" />
-            <CardHeader className="relative z-10 pb-4">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <Award className="h-5 w-5" />
-                Success Rate
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="relative z-10">
-              <div className="text-6xl font-bold mb-2">{successRate.toFixed(0)}%</div>
-              <p className="text-white/90 text-sm mb-6">Candidates scoring 15+</p>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+          <Card className="bento-card border-0 shadow-lg gradient-lime text-white">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Award className="h-8 w-8" />
+                <h3 className="text-2xl font-bold">Success Rate</h3>
+              </div>
+              <div className="text-7xl font-bold mb-4">{successRate.toFixed(0)}%</div>
+              <p className="text-lg mb-6 text-white/90">
+                Candidates scoring 85%+
+              </p>
+              <div className="space-y-3 pt-6 border-t border-white/20">
+                <div className="flex justify-between items-center">
                   <span className="text-white/80">Successful</span>
-                  <span className="font-semibold">
-                    {successfulCandidates.length} / {completedCandidates.length}
+                  <span className="font-bold">
+                    {topPerformers.length} / {completedCandidates.length}
                   </span>
-                </div>
-                <div className="h-3 bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white rounded-full transition-all duration-500"
-                    style={{ width: `${successRate}%` }}
-                  />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Job Roles Grid */}
         <Card className="bento-card border-0 shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-2xl font-bold flex items-center gap-3">
-              <div className="p-2 rounded-xl gradient-coral">
-                <Briefcase className="h-5 w-5 text-white" />
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl gradient-coral">
+                <Briefcase className="h-6 w-6 text-white" />
               </div>
-              Job Roles
-            </CardTitle>
+              <CardTitle className="text-2xl">Job Roles</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {jobStats.slice(0, 6).map((job, idx) => {
                 const gradients = ["gradient-coral", "gradient-lime", "gradient-mint"];
+                const colors = ["#FF6347", "#C4D82E", "#A8D5BA"];
                 const gradient = gradients[idx % 3];
+                const color = colors[idx % 3];
+
                 return (
                   <div
                     key={job.id}
-                    className="p-5 rounded-2xl bg-gradient-to-br from-accent/5 to-accent/10 hover:from-accent/10 hover:to-accent/20 transition-all border-l-4 border-transparent hover:border-current group"
-                    style={{
-                      borderLeftColor:
-                        idx % 3 === 0 ? "#FF6347" : idx % 3 === 1 ? "#C4D82E" : "#A8D5BA",
-                    }}
+                    className="p-5 rounded-2xl border-2 hover:shadow-md transition-all"
+                    style={{ borderLeftWidth: "6px", borderLeftColor: color }}
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-lg group-hover:text-[#FF6347] transition-colors">
-                        {job.title}
-                      </h3>
-                      <div className={`p-2 rounded-xl ${gradient} shadow-sm`}>
+                      <h4 className="font-semibold text-lg">{job.title}</h4>
+                      <div className={`p-2 rounded-xl ${gradient}`}>
                         <Briefcase className="h-4 w-4 text-white" />
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {job.experience} experience
-                    </p>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <ClipboardList className="h-4 w-4" />
-                        <span>{job.testCount} tests</span>
+                    <p className="text-sm text-muted-foreground mb-3">{job.experience}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <ClipboardList className="h-4 w-4" style={{ color }} />
+                        <span className="font-medium">{job.testCount} tests</span>
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>{job.candidateCount} candidates</span>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" style={{ color }} />
+                        <span className="font-medium">{job.candidateCount} candidates</span>
                       </div>
                     </div>
                   </div>
@@ -249,4 +268,3 @@ export default function AdminDashboard() {
     </DashboardLayout>
   );
 }
-

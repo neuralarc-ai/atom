@@ -15,6 +15,13 @@
       "when": 1761056412612,
       "tag": "0001_chunky_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1761105344089,
+      "tag": "0002_bored_dragon_lord",
+      "breakpoints": true
     }
   ]
 }

@@ -237,16 +237,100 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { createCandidate } = await import("./db");
+        const { createCandidate, getTestById, getJobById } = await import("./db");
+        const { invokeLLM } = await import("./_core/llm");
+
+        // Get test and job details
+        const test = await getTestById(input.testId);
+        if (!test) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found" });
+        }
+
+        const job = await getJobById(test.jobId);
+        if (!job) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        }
+
+        // Generate fresh questions for this candidate
+        const skillsArray = JSON.parse(job.skills);
+        const prompt = `Generate 21 multiple-choice questions for a ${test.complexity} complexity test for the position of ${job.title}. 
+
+Job Description: ${job.description}
+Required Skills: ${skillsArray.join(", ")}
+Experience Level: ${job.experience}
+
+For each question, provide:
+1. The question text
+2. Four options
+3. The correct answer (0, 1, 2, or 3 for option index)
+4. A brief explanation
+
+Return the response as a JSON array with this structure:
+[
+  {
+    "question": "Question text here",
+    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+    "correctAnswer": 0,
+    "explanation": "Brief explanation"
+  }
+]
+
+Make sure the questions are relevant to the job role and test the candidate's knowledge of the required skills.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are an expert HR assessment designer. Generate high-quality technical questions." },
+            { role: "user", content: prompt },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "test_questions",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  questions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        question: { type: "string" },
+                        options: {
+                          type: "array",
+                          items: { type: "string" },
+                        },
+                        correctAnswer: { type: "number" },
+                        explanation: { type: "string" },
+                      },
+                      required: ["question", "options", "correctAnswer", "explanation"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["questions"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices[0].message.content;
+        const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+        const parsedQuestions = JSON.parse(contentStr || "{}");
+
+        // Create candidate with their unique questions
         const result = await createCandidate({
           testId: input.testId,
           name: input.name,
           email: input.email,
+          questions: JSON.stringify(parsedQuestions.questions),
         });
-        // Get the created candidate ID from the database
+
+        // Get the created candidate ID
         const { getAllCandidates } = await import("./db");
         const candidates = await getAllCandidates();
-        const latestCandidate = candidates[0]; // Most recent candidate
+        const latestCandidate = candidates[0];
         
         return { success: true, candidateId: latestCandidate?.id || "" };
       }),
@@ -254,31 +338,34 @@ Make sure the questions are relevant to the job role and test the candidate's kn
       .input(
         z.object({
           candidateId: z.string(),
-          answers: z.array(z.string()),
+          answers: z.array(z.number()),
         })
       )
       .mutation(async ({ input }) => {
-        const { updateCandidate, getCandidateById, getTestById } = await import("./db");
+        const { updateCandidate, getCandidateById } = await import("./db");
 
-        // Get candidate and test
+        // Get candidate
         const candidate = await getCandidateById(input.candidateId);
         if (!candidate) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Candidate not found" });
         }
 
-        const test = await getTestById(candidate.testId);
-        if (!test) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found" });
+        // Get candidate's unique questions
+        const questions = JSON.parse(candidate.questions || "[]");
+        if (questions.length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No questions found for candidate" });
         }
 
         // Calculate score
-        const questions = JSON.parse(test.questions);
         let score = 0;
         for (let i = 0; i < questions.length; i++) {
           if (input.answers[i] === questions[i].correctAnswer) {
             score++;
           }
         }
+
+        // Calculate percentage
+        const percentage = (score / questions.length) * 100;
 
         // Update candidate
         await updateCandidate(input.candidateId, {
@@ -287,7 +374,13 @@ Make sure the questions are relevant to the job role and test the candidate's kn
           completedAt: new Date(),
         });
 
-        return { success: true, score, total: questions.length };
+        return { 
+          success: true, 
+          score, 
+          total: questions.length,
+          percentage: Math.round(percentage),
+          passed: percentage >= 85,
+        };
       }),
     delete: protectedProcedure
       .input(z.object({ id: z.string() }))

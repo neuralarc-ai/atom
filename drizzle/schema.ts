@@ -49,6 +49,7 @@ export const candidates = mysqlTable("candidates", {
   name: text("name").notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   testId: varchar("testId", { length: 64 }).notNull(),
+  questions: text("questions"), // JSON stringified array of questions for this candidate
   answers: text("answers"), // JSON stringified array
   score: varchar("score", { length: 10 }),
   startedAt: timestamp("startedAt").defaultNow(),
