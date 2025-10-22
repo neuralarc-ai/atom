@@ -22,6 +22,9 @@ export default function TestPage() {
   const [showWarning, setShowWarning] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutReason, setLockoutReason] = useState<string>("");
+  const [showRequestSuccess, setShowRequestSuccess] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string>("");
 
   const { data: test } = trpc.tests.getById.useQuery({ id: testId || "" }, { enabled: !!testId });
   const { data: candidate } = trpc.candidates.getById.useQuery(
@@ -109,7 +112,7 @@ export default function TestPage() {
 
   const questions = candidate?.questions ? JSON.parse(candidate.questions) : [];
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!name || !email) {
       alert("Please fill in all fields");
       return;
@@ -118,7 +121,20 @@ export default function TestPage() {
       setShowWarning(false);
       return;
     }
-    startMutation.mutate({ testId: testId || "", name, email });
+
+    // Request camera permission
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: false 
+      });
+      setCameraStream(stream);
+      setCameraError("");
+      startMutation.mutate({ testId: testId || "", name, email });
+    } catch (error) {
+      console.error("Camera access denied:", error);
+      setCameraError("Camera access is required to take this test. Please enable your camera and try again.");
+    }
   };
 
   const handleAnswer = (optionIndex: number) => {
@@ -155,7 +171,7 @@ export default function TestPage() {
 
   const requestReappearanceMutation = trpc.candidates.requestReappearance.useMutation({
     onSuccess: () => {
-      alert("Reappearance request submitted! Please wait for admin approval.");
+      setShowRequestSuccess(true);
     },
   });
 
@@ -164,8 +180,29 @@ export default function TestPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col">
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl border-0 shadow-2xl">
-            <CardContent className="p-12">
+          <div className="w-full max-w-2xl space-y-4">
+            {/* Success Notification */}
+            {showRequestSuccess && (
+              <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg animate-in slide-in-from-top">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-green-500">
+                      <CheckCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-green-900">Request Submitted Successfully!</h3>
+                      <p className="text-sm text-green-700 mt-1">
+                        Your reappearance request has been sent to the admin. You will be notified once it's reviewed.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Lockout Card */}
+            <Card className="border-0 shadow-2xl">
+              <CardContent className="p-12">
               <div className="text-center space-y-6">
                 <div className="w-24 h-24 mx-auto rounded-full bg-red-100 flex items-center justify-center">
                   <AlertCircle className="h-12 w-12 text-red-600" />
@@ -200,6 +237,7 @@ export default function TestPage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
         <div className="text-center py-6 text-sm text-muted-foreground bg-white/30 backdrop-blur-sm">
           Powered and Created by <span className="font-semibold">Helium AI</span>
@@ -463,6 +501,15 @@ export default function TestPage() {
                 className="h-12"
               />
             </div>
+
+            {cameraError && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300">
+                <p className="text-sm text-red-700 font-medium flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {cameraError}
+                </p>
+              </div>
+            )}
 
             <div className="p-6 rounded-2xl bg-gradient-to-r from-mint-50 to-green-50 border-2 border-[#A8D5BA]">
               <h3 className="font-semibold mb-3 flex items-center gap-2">

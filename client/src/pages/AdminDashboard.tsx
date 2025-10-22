@@ -1,14 +1,24 @@
 import DashboardLayout from "@/components/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock, Trophy, AlertCircle, ArrowUpRight } from "lucide-react";
 
 export default function AdminDashboard() {
+  const utils = trpc.useUtils();
   const { data: jobs = [], isLoading: jobsLoading } = trpc.jobs.list.useQuery();
   const { data: tests = [], isLoading: testsLoading } = trpc.tests.list.useQuery();
   const { data: candidates = [], isLoading: candidatesLoading } = trpc.candidates.list.useQuery();
 
+  const approveReappearanceMutation = trpc.candidates.approveReappearance.useMutation({
+    onSuccess: () => {
+      utils.candidates.list.invalidate();
+    },
+  });
+
   const completedCandidates = candidates.filter((c) => c.completedAt);
+  const reappearanceRequests = candidates.filter((c) => c.status === "reappearance_requested");
+  const lockedOutCandidates = candidates.filter((c) => c.status === "locked_out");
   
   // Calculate percentage for each candidate
   const candidatesWithPercentage = completedCandidates.map((c) => {
@@ -47,6 +57,47 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground text-xl">Welcome to Atom</p>
           </div>
         </div>
+
+        {/* Reappearance Requests Alert */}
+        {reappearanceRequests.length > 0 && (
+          <Card className="border-2 border-orange-300 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-orange-500">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-xl text-orange-900">Reappearance Requests ({reappearanceRequests.length})</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {reappearanceRequests.map((candidate) => (
+                  <div key={candidate.id} className="p-4 bg-white rounded-xl border border-orange-200 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                        {candidate.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg">{candidate.name}</p>
+                        <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                        <p className="text-xs text-orange-600 mt-1">
+                          Locked out: {candidate.lockoutReason || "Unknown reason"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => approveReappearanceMutation.mutate({ candidateId: candidate.id })}
+                      disabled={approveReappearanceMutation.isPending}
+                      className="gradient-lime text-white"
+                    >
+                      {approveReappearanceMutation.isPending ? "Approving..." : "Approve Reappearance"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Bento Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
