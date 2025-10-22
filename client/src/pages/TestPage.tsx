@@ -134,8 +134,9 @@ export default function TestPage() {
 
   if (result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl border-0 shadow-2xl">
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl border-0 shadow-2xl">
           <CardContent className="p-12">
             {result.passed ? (
               <div className="text-center space-y-6">
@@ -204,7 +205,8 @@ export default function TestPage() {
             )}
           </CardContent>
         </Card>
-        <div className="text-center mt-6 text-xs text-muted-foreground">
+        </div>
+        <div className="text-center py-6 text-sm text-muted-foreground bg-white/30 backdrop-blur-sm">
           Powered and Created by <span className="font-semibold">Helium AI</span>
         </div>
       </div>
