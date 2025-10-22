@@ -1,0 +1,13 @@
+{
+  "query": "SELECT id FROM tests ORDER BY createdAt DESC LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id FROM tests ORDER BY createdAt DESC LIMIT 1;",
+  "rows": [
+    {
+      "id": "1f5ddae3-3d29-42b2-ae83-bb6f56b360f6"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\n1f5ddae3-3d29-42b2-ae83-bb6f56b360f6\n",
+  "stderr": "",
+  "execution_time_ms": 1694
+}

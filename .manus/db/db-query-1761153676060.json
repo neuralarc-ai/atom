@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, jobId, complexity, LENGTH(questions) as questions_length, shortCode FROM tests;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id, jobId, complexity, LENGTH(questions) as questions_length, shortCode FROM tests;",
+  "rows": [
+    {
+      "id": "d7ed55e4-c25d-435e-8bbc-b593f49c24ad",
+      "jobId": "144f2965-a9f4-473d-8ddd-2b228b41d9ac",
+      "complexity": "high",
+      "questions_length": "13866",
+      "shortCode": "G8MQVT"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tjobId\tcomplexity\tquestions_length\tshortCode\nd7ed55e4-c25d-435e-8bbc-b593f49c24ad\t144f2965-a9f4-473d-8ddd-2b228b41d9ac\thigh\t13866\tG8MQVT\n",
+  "stderr": "",
+  "execution_time_ms": 1644
+}

@@ -16,7 +16,7 @@ export default function TestPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
-  const [timeLeft, setTimeLeft] = useState(20 * 60);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [showWarning, setShowWarning] = useState(true);
@@ -34,6 +34,11 @@ export default function TestPage() {
     onSuccess: (data) => {
       setCandidateId(data.candidateId);
       setHasStarted(true);
+      // Set time based on test complexity
+      if (test) {
+        const duration = (test.complexity === 'low') ? 20 * 60 : 45 * 60;
+        setTimeLeft(duration);
+      }
     },
     onError: (error) => {
       console.error("Test start error:", error);
@@ -528,7 +533,7 @@ export default function TestPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#A8D5BA]" />
-                  20 minute time limit
+                  {test?.complexity === 'low' ? '20' : '45'} minute time limit
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#A8D5BA]" />

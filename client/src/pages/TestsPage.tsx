@@ -160,7 +160,11 @@ export default function TestsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium" style={{ color: '#1B5E20' }}>Avg. Duration</p>
-                  <p className="text-3xl font-bold mt-1" style={{ color: '#1B5E20' }}>20 min</p>
+                  <p className="text-3xl font-bold mt-1" style={{ color: '#1B5E20' }}>
+                    {tests.length > 0 
+                      ? Math.round(tests.reduce((sum, t) => sum + (t.complexity === 'low' ? 20 : 45), 0) / tests.length)
+                      : 0} min
+                  </p>
                 </div>
                 <Clock className="h-10 w-10" style={{ color: '#C4D82E', opacity: 0.5 }} />
               </div>
@@ -273,7 +277,7 @@ export default function TestsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" style={{ color: '#1B5E20' }} />
-                        <span className="font-medium">20 min</span>
+                        <span className="font-medium">{test.complexity === 'low' ? '20' : '45'} min</span>
                       </div>
                     </div>
 
@@ -425,7 +429,7 @@ export default function TestsPage() {
                 >
                   <Clock className="h-5 w-5 mb-2" style={{ color: '#1B5E20' }} />
                   <p className="text-sm text-muted-foreground">Duration</p>
-                  <p className="text-2xl font-bold" style={{ color: '#1B5E20' }}>20 min</p>
+                  <p className="text-2xl font-bold" style={{ color: '#1B5E20' }}>{complexity === 'low' ? '20' : '45'} min</p>
                 </div>
               </div>
               

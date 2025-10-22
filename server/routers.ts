@@ -348,91 +348,30 @@ Make sure the questions are relevant to the job role and test the candidate's kn
           }
         }
 
-        // Get test and job details
+        // Get test details
         const test = await getTestById(input.testId);
         if (!test) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Test not found" });
         }
 
-        const job = await getJobById(test.jobId);
-        if (!job) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        // Get the questions from the test (50-question pool)
+        if (!test.questions) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Questions not found for this test" });
         }
 
-        // Generate fresh questions for this candidate
-        const skillsArray = job.skills; // Already an array from getAllJobs
-        const prompt = `Generate 21 multiple-choice questions for a ${test.complexity} complexity test for the position of ${job.title}. 
+        // Parse the question pool (50 questions)
+        const allQuestions = JSON.parse(test.questions);
+        
+        // Randomly select 21 questions from the pool
+        const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+        const selectedQuestions = shuffled.slice(0, 21);
 
-Job Description: ${job.description}
-Required Skills: ${skillsArray.join(", ")}
-Experience Level: ${job.experience}
-
-For each question, provide:
-1. The question text
-2. Four options
-3. The correct answer (0, 1, 2, or 3 for option index)
-4. A brief explanation
-
-Return the response as a JSON array with this structure:
-[
-  {
-    "question": "Question text here",
-    "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-    "correctAnswer": 0,
-    "explanation": "Brief explanation"
-  }
-]
-
-Make sure the questions are relevant to the job role and test the candidate's knowledge of the required skills.`;
-
-        const response = await invokeLLM({
-          messages: [
-            { role: "system", content: "You are an expert HR assessment designer. Generate high-quality technical questions." },
-            { role: "user", content: prompt },
-          ],
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "test_questions",
-              strict: true,
-              schema: {
-                type: "object",
-                properties: {
-                  questions: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        question: { type: "string" },
-                        options: {
-                          type: "array",
-                          items: { type: "string" },
-                        },
-                        correctAnswer: { type: "number" },
-                        explanation: { type: "string" },
-                      },
-                      required: ["question", "options", "correctAnswer", "explanation"],
-                      additionalProperties: false,
-                    },
-                  },
-                },
-                required: ["questions"],
-                additionalProperties: false,
-              },
-            },
-          },
-        });
-
-        const content = response.choices[0].message.content;
-        const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
-        const parsedQuestions = JSON.parse(contentStr || "{}");
-
-        // Create candidate with their unique questions
+        // Create candidate with their unique set of 21 questions
         const result = await createCandidate({
           testId: input.testId,
           name: input.name,
           email: input.email,
-          questions: JSON.stringify(parsedQuestions.questions),
+          questions: JSON.stringify(selectedQuestions),
         });
 
         // Get the created candidate ID
