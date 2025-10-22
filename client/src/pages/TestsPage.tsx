@@ -200,23 +200,29 @@ export default function TestsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="rounded-2xl bg-gradient-to-br from-[#A8D5BA]/20 to-[#C4D82E]/10 border-2 border-[#A8D5BA]/30 p-6 text-sm">
-              <p className="font-bold text-lg mb-3 text-[#1B5E20]">Test Details:</p>
-              <ul className="space-y-2 text-[#1B5E20]/80">
+            <div 
+              className="rounded-2xl border-2 p-6 text-sm"
+              style={{
+                background: 'linear-gradient(to bottom right, rgba(168, 213, 186, 0.2), rgba(196, 216, 46, 0.1))',
+                borderColor: 'rgba(168, 213, 186, 0.3)'
+              }}
+            >
+              <p className="font-bold text-lg mb-3" style={{ color: '#1B5E20' }}>Test Details:</p>
+              <ul className="space-y-2" style={{ color: 'rgba(27, 94, 32, 0.8)' }}>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#1B5E20' }}></span>
                   21 randomized questions
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#1B5E20' }}></span>
                   20-minute time limit
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#1B5E20' }}></span>
                   Auto-submission on timeout
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#1B5E20' }}></span>
                   Real-time progress tracking
                 </li>
               </ul>

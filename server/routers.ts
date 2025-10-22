@@ -174,7 +174,7 @@ Return as JSON with this structure:
         }
 
         // Generate questions using LLM
-        const skillsArray = JSON.parse(job.skills);
+        const skillsArray = Array.isArray(job.skills) ? job.skills : JSON.parse(job.skills);
         const prompt = `Generate 21 multiple-choice questions for a ${input.complexity} complexity test for the position of ${job.title}. 
 
 Job Description: ${job.description}
