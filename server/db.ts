@@ -96,14 +96,23 @@ export async function createJob(job: InsertJob) {
 export async function getAllJobs() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(jobs).orderBy(desc(jobs.createdAt));
+  const result = await db.select().from(jobs).orderBy(desc(jobs.createdAt));
+  return result.map(job => ({
+    ...job,
+    skills: JSON.parse(job.skills as string)
+  }));
 }
 
 export async function getJobById(id: string) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(jobs).where(eq(jobs.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (result.length === 0) return undefined;
+  const job = result[0];
+  return {
+    ...job,
+    skills: JSON.parse(job.skills as string)
+  };
 }
 
 export async function updateJob(id: string, data: Partial<InsertJob>) {

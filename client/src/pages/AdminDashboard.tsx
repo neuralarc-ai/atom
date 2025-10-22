@@ -384,8 +384,8 @@ export default function AdminDashboard() {
                 const gradients = [
                   { bg: "from-[#FF6347] to-[#ff8570]", text: "text-[#FF6347]", icon: "bg-[#FF6347]/10" },
                   { bg: "from-[#1B5E20] to-[#2E7D32]", text: "text-[#1B5E20]", icon: "bg-[#1B5E20]/10" },
-                  { bg: "from-[#D4E157] to-[#DCE775]", text: "text-[#1B5E20]", icon: "bg-[#D4E157]/20" },
-                  { bg: "from-[#B2DFDB] to-[#C8E6C9]", text: "text-[#1B5E20]", icon: "bg-[#B2DFDB]/20" },
+                  { bg: "from-[#C4D82E] to-[#D4E157]", text: "text-[#1B5E20]", icon: "bg-[#C4D82E]/20" },
+                  { bg: "from-[#A8D5BA] to-[#B2DFDB]", text: "text-[#1B5E20]", icon: "bg-[#A8D5BA]/20" },
                 ];
                 const gradient = gradients[index % gradients.length];
                 const JobIcon = getJobIcon(job.title);

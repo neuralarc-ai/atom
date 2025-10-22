@@ -200,13 +200,25 @@ export default function TestsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="rounded-lg bg-muted p-4 text-sm">
-              <p className="font-medium mb-2">Test Details:</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• 21 randomized questions</li>
-                <li>• 20-minute time limit</li>
-                <li>• Auto-submission on timeout</li>
-                <li>• Real-time progress tracking</li>
+            <div className="rounded-2xl bg-gradient-to-br from-[#A8D5BA]/20 to-[#C4D82E]/10 border-2 border-[#A8D5BA]/30 p-6 text-sm">
+              <p className="font-bold text-lg mb-3 text-[#1B5E20]">Test Details:</p>
+              <ul className="space-y-2 text-[#1B5E20]/80">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  21 randomized questions
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  20-minute time limit
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  Auto-submission on timeout
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B5E20]"></span>
+                  Real-time progress tracking
+                </li>
               </ul>
             </div>
           </div>
