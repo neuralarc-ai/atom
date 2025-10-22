@@ -21,6 +21,7 @@ import { trpc } from "@/lib/trpc";
 import { ClipboardList, Copy, Plus, Trash2, FileText, Clock, Target, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { generateShortTestUrl } from "@/lib/urlEncoder";
 
 export default function TestsPage() {
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -65,9 +66,9 @@ export default function TestsPage() {
   };
 
   const copyTestLink = (testId: string) => {
-    const link = `${window.location.origin}/test/${testId}`;
+    const link = generateShortTestUrl(testId);
     navigator.clipboard.writeText(link);
-    toast.success("Test link copied to clipboard");
+    toast.success("Short test link copied to clipboard");
   };
 
   // Color mapping for complexity levels

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "../components/DashboardLayout";
+import { useEffect } from "react";
 
 // Job role icon mapping
 const getJobIcon = (title: string) => {
@@ -37,6 +38,14 @@ const getJobIcon = (title: string) => {
 };
 
 export default function AdminDashboard() {
+  // Check custom authentication
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("atom_admin_token") === "authenticated";
+    if (!isAuthenticated) {
+      window.location.href = "/";
+    }
+  }, []);
+  
   const { data: jobs = [] } = trpc.jobs.list.useQuery();
   const { data: tests = [] } = trpc.tests.list.useQuery();
   const { data: candidates = [] } = trpc.candidates.list.useQuery();

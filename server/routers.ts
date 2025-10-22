@@ -146,6 +146,10 @@ Return as JSON with this structure:
       const { getTestById } = await import("./db");
       return await getTestById(input.id);
     }),
+    getByShortCode: publicProcedure.input(z.object({ shortCode: z.string() })).query(async ({ input }) => {
+      const { getTestByShortCode } = await import("./db");
+      return await getTestByShortCode(input.shortCode);
+    }),
     getByJobId: protectedProcedure.input(z.object({ jobId: z.string() })).query(async ({ input, ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
@@ -249,9 +253,16 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         });
 
         // Get the created test ID from the database
-        const { getAllTests } = await import("./db");
+        const { getAllTests, updateTestShortCode } = await import("./db");
+        const { generateShortCode } = await import("./urlEncoder");
         const tests = await getAllTests();
         const latestTest = tests[0]; // Most recent test
+        
+        // Generate and store short code
+        if (latestTest) {
+          const shortCode = generateShortCode(latestTest.id);
+          await updateTestShortCode(latestTest.id, shortCode);
+        }
         
         return { success: true, testId: latestTest?.id || "" };
       }),

@@ -11,6 +11,7 @@ import TestsPage from "./pages/TestsPage";
 import CandidatesPage from "./pages/CandidatesPage";
 import CandidateResultsPage from "./pages/CandidateResultsPage";
 import TestPage from "./pages/TestPage";
+import TestRedirect from "./pages/TestRedirect";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/admin/candidates"} component={CandidatesPage} />
       <Route path="/admin/candidates/:id" component={CandidateResultsPage} />
       <Route path={"/test/:testId"} component={TestPage} />
+      <Route path={"/t/:code"} component={TestRedirect} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -37,6 +37,7 @@ export const tests = mysqlTable("tests", {
   jobId: varchar("jobId", { length: 64 }).notNull(),
   complexity: mysqlEnum("complexity", ["low", "medium", "high"]).notNull(),
   questions: text("questions").notNull(), // JSON stringified array
+  shortCode: varchar("shortCode", { length: 10 }).unique(), // Short code for URL
   createdAt: timestamp("createdAt").defaultNow(),
 });
 

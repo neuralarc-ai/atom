@@ -261,9 +261,6 @@ export default function TestPage() {
           </Card>
           </div>
         </div>
-        <div className="text-center py-6 text-sm text-muted-foreground bg-white/30 backdrop-blur-sm">
-          Powered and Created by <span className="font-semibold">Helium AI</span>
-        </div>
       </div>
     );
   }
@@ -341,9 +338,6 @@ export default function TestPage() {
             )}
           </CardContent>
         </Card>
-        </div>
-        <div className="text-center py-6 text-sm text-muted-foreground bg-white/30 backdrop-blur-sm">
-          Powered and Created by <span className="font-semibold">Helium AI</span>
         </div>
       </div>
     );
@@ -609,9 +603,6 @@ export default function TestPage() {
           </div>
         </CardContent>
       </Card>
-      <div className="text-center mt-6 text-xs text-muted-foreground">
-        Powered and Created by <span className="font-semibold">Helium AI</span>
-      </div>
     </div>
   );
 }

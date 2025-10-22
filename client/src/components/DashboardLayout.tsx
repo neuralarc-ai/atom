@@ -113,7 +113,14 @@ function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  
+  // Custom logout function
+  const logout = () => {
+    localStorage.removeItem("atom_admin_token");
+    localStorage.removeItem("atom_admin_user");
+    window.location.href = "/";
+  };
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -240,10 +247,7 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3 space-y-3">
-            <div className="text-center text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-              Powered and Created by <span className="font-semibold">Helium AI</span>
-            </div>
+          <SidebarFooter className="p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">

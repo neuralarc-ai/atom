@@ -148,6 +148,19 @@ export async function getTestById(id: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getTestByShortCode(shortCode: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(tests).where(eq(tests.shortCode, shortCode)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function updateTestShortCode(id: string, shortCode: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(tests).set({ shortCode }).where(eq(tests.id, id));
+}
+
 export async function getTestsByJobId(jobId: string) {
   const db = await getDb();
   if (!db) return [];
