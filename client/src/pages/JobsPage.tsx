@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { Briefcase, Edit, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Edit, Plus, Trash2, Wand2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -45,6 +45,33 @@ export default function JobsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  const generateJobDetailsMutation = trpc.jobs.generateJobDetails.useMutation({
+    onSuccess: (data) => {
+      setNewJob({
+        ...newJob,
+        description: data.description,
+        skills: data.skills.join(", "),
+        experience: data.experience,
+      });
+      setIsGenerating(false);
+      toast.success("Job details generated successfully!");
+    },
+    onError: () => {
+      setIsGenerating(false);
+      toast.error("Failed to generate job details");
+    },
+  });
+
+  const handleGenerateDetails = () => {
+    if (!newJob.title.trim()) {
+      toast.error("Please enter a job title first");
+      return;
+    }
+    setIsGenerating(true);
+    generateJobDetailsMutation.mutate({ title: newJob.title });
+  };
   const [newJob, setNewJob] = useState({
     title: "",
     description: "",
@@ -105,13 +132,27 @@ export default function JobsPage() {
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Job Title *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="title">Job Title *</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateDetails}
+                      disabled={isGenerating || !newJob.title.trim()}
+                      className="gap-2"
+                    >
+                      <Wand2 className="h-4 w-4" />
+                      {isGenerating ? "Generating..." : "Auto-generate"}
+                    </Button>
+                  </div>
                   <Input
                     id="title"
                     placeholder="e.g., Senior Python Developer"
                     value={newJob.title}
                     onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
                   />
+                  <p className="text-xs text-muted-foreground">Enter a title and click Auto-generate to create description and skills using AI</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>

@@ -99,6 +99,46 @@ export default function AdminDashboard() {
           </Card>
         )}
 
+        {/* Locked Out Candidates */}
+        {lockedOutCandidates.length > 0 && (
+          <Card className="border-2 border-red-300 bg-gradient-to-r from-red-50 to-pink-50 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-500">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-xl text-red-900">Locked Out Candidates ({lockedOutCandidates.length})</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {lockedOutCandidates.map((candidate) => (
+                  <div key={candidate.id} className="p-4 bg-white rounded-xl border border-red-200 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-lg">
+                        {candidate.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg">{candidate.name}</p>
+                        <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          Locked out: {candidate.lockoutReason || "Unknown reason"}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(candidate.startedAt!).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-red-600 font-medium">
+                      No reappearance request yet
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Bento Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
           {/* Total Jobs - Compact */}

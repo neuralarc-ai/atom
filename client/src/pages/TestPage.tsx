@@ -209,6 +209,36 @@ export default function TestPage() {
 
   const uploadVideoMutation = trpc.candidates.uploadVideo.useMutation();
 
+  // Keyboard navigation
+  useEffect(() => {
+    if (!hasStarted || isLocked || result) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const questions = candidate?.questions ? JSON.parse(candidate.questions) : [];
+      
+      // Arrow Left - Previous question
+      if (e.key === 'ArrowLeft' && currentQuestion > 0) {
+        e.preventDefault();
+        setCurrentQuestion(currentQuestion - 1);
+      }
+      // Arrow Right - Next question
+      else if (e.key === 'ArrowRight' && currentQuestion < questions.length - 1) {
+        e.preventDefault();
+        setCurrentQuestion(currentQuestion + 1);
+      }
+      // Enter - Submit if on last question and all answered
+      else if (e.key === 'Enter' && currentQuestion === questions.length - 1) {
+        if (answers.filter(a => a !== undefined).length === questions.length) {
+          e.preventDefault();
+          handleSubmit();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasStarted, isLocked, result, currentQuestion, answers, candidate]);
+
   // Upload video when blob is ready
   useEffect(() => {
     if (videoBlob && candidateId) {

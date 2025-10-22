@@ -28,6 +28,57 @@ export const appRouter = router({
       const { getJobById } = await import("./db");
       return await getJobById(input.id);
     }),
+    generateJobDetails: protectedProcedure
+      .input(z.object({ title: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { invokeLLM } = await import("./_core/llm");
+
+        const prompt = `You are an expert HR professional. Based on the job title "${input.title}", generate:
+1. A detailed job description (2-3 paragraphs)
+2. Required skills (5-8 key skills)
+3. Experience requirement (e.g., "2-4 years", "5+ years")
+
+Return as JSON with this structure:
+{
+  "description": "Full job description here",
+  "skills": ["Skill 1", "Skill 2", ...],
+  "experience": "Experience requirement"
+}`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are an expert HR professional who creates detailed job descriptions." },
+            { role: "user", content: prompt },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "job_details",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  description: { type: "string" },
+                  skills: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                  experience: { type: "string" },
+                },
+                required: ["description", "skills", "experience"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices[0].message.content as string;
+        const jobDetails = JSON.parse(content || "{}");
+        return jobDetails;
+      }),
     create: protectedProcedure
       .input(
         z.object({
