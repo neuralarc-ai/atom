@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock, Trophy, AlertCircle, ArrowUpRight } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const utils = trpc.useUtils();
@@ -13,6 +14,10 @@ export default function AdminDashboard() {
   const approveReappearanceMutation = trpc.candidates.approveReappearance.useMutation({
     onSuccess: () => {
       utils.candidates.list.invalidate();
+      toast.success("Reappearance approved successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to approve reappearance: " + error.message);
     },
   });
 

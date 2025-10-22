@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO candidates (id, testId, name, email, status, lockoutReason, reappearanceRequestedAt) VALUES ('test-candidate-1', 'e1147403-80a2-4a7e-9f09-e1d4e7e82701', 'John Doe', 'john@example.com', 'reappearance_requested', 'focus_change', NOW())",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute INSERT INTO candidates (id, testId, name, email, status, lockoutReason, reappearanceRequestedAt) VALUES ('test-candidate-1', 'e1147403-80a2-4a7e-9f09-e1d4e7e82701', 'John Doe', 'john@example.com', 'reappearance_requested', 'focus_change', NOW())",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1572
+}
