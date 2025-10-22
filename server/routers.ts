@@ -247,28 +247,41 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { createCandidate, getTestById, getJobById, getCandidateByEmailAndTest } = await import("./db");
+        const { createCandidate, getTestById, getJobById, getCandidateByEmailAndTest, updateCandidate } = await import("./db");
         const { invokeLLM } = await import("./_core/llm");
 
         // Check if candidate with this email has already attempted this test
         const existingCandidate = await getCandidateByEmailAndTest(input.email, input.testId);
         if (existingCandidate) {
-          // If locked out and not approved, deny access
-          if (existingCandidate.status === 'locked_out' && !existingCandidate.reappearanceApprovedAt) {
+          // Block if locked out (regardless of status name)
+          if ((existingCandidate.status === 'locked_out' || existingCandidate.status === 'reappearance_requested') && !existingCandidate.reappearanceApprovedAt) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
-              message: "You have been locked out of this test. Please request reappearance approval from the admin." 
+              message: "You have been locked out of this test. Your reappearance request is pending admin approval." 
             });
           }
-          // If completed, deny retake
+          // Block if completed
           if (existingCandidate.status === 'completed') {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
               message: "You have already completed this test." 
             });
           }
-          // If in progress (not locked), allow to continue
-          if (existingCandidate.status === 'in_progress' && !existingCandidate.reappearanceApprovedAt) {
+          // Allow if approved for reappearance - reset their test
+          if (existingCandidate.reappearanceApprovedAt) {
+            // Reset candidate for fresh attempt
+            await updateCandidate(existingCandidate.id, {
+              status: 'in_progress',
+              startedAt: new Date(),
+              completedAt: null,
+              score: null,
+              answers: null,
+              lockoutReason: null,
+            });
+            return { candidateId: existingCandidate.id };
+          }
+          // If in progress (normal case), allow to continue
+          if (existingCandidate.status === 'in_progress') {
             return { candidateId: existingCandidate.id };
           }
         }
