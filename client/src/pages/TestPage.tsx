@@ -23,11 +23,6 @@ export default function TestPage() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutReason, setLockoutReason] = useState<string>("");
   const [showRequestSuccess, setShowRequestSuccess] = useState(false);
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [cameraError, setCameraError] = useState<string>("");
-  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
 
   const { data: test } = trpc.tests.getById.useQuery({ id: testId || "" }, { enabled: !!testId });
   const { data: candidate } = trpc.candidates.getById.useQuery(
@@ -39,6 +34,10 @@ export default function TestPage() {
     onSuccess: (data) => {
       setCandidateId(data.candidateId);
       setHasStarted(true);
+    },
+    onError: (error) => {
+      console.error("Test start error:", error);
+      alert(`Failed to start test: ${error.message}`);
     },
   });
 
@@ -115,7 +114,7 @@ export default function TestPage() {
 
   const questions = candidate?.questions ? JSON.parse(candidate.questions) : [];
 
-  const handleStart = async () => {
+  const handleStart = () => {
     if (!name || !email) {
       alert("Please fill in all fields");
       return;
@@ -125,39 +124,8 @@ export default function TestPage() {
       return;
     }
 
-    // Request camera permission
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: false 
-      });
-      setCameraStream(stream);
-      setCameraError("");
-
-      // Start recording
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp8',
-      });
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-        setVideoBlob(blob);
-      };
-
-      mediaRecorder.start(1000); // Collect data every second
-      mediaRecorderRef.current = mediaRecorder;
-
-      startMutation.mutate({ testId: testId || "", name, email });
-    } catch (error) {
-      console.error("Camera access denied:", error);
-      setCameraError("Camera access is required to take this test. Please enable your camera and try again.");
-    }
+    // Start the test
+    startMutation.mutate({ testId: testId || "", name, email });
   };
 
   const handleAnswer = (optionIndex: number) => {
@@ -182,14 +150,6 @@ export default function TestPage() {
     if (isSubmitting) return;
     setIsSubmitting(true);
     
-    // Stop recording
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-    }
-    
     submitMutation.mutate({ candidateId: candidateId || "", answers });
   };
 
@@ -206,8 +166,6 @@ export default function TestPage() {
       setShowRequestSuccess(true);
     },
   });
-
-  const uploadVideoMutation = trpc.candidates.uploadVideo.useMutation();
 
   // Keyboard navigation
   useEffect(() => {
@@ -238,21 +196,6 @@ export default function TestPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [hasStarted, isLocked, result, currentQuestion, answers, candidate]);
-
-  // Upload video when blob is ready
-  useEffect(() => {
-    if (videoBlob && candidateId) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        uploadVideoMutation.mutate({
-          candidateId,
-          videoData: base64,
-        });
-      };
-      reader.readAsDataURL(videoBlob);
-    }
-  }, [videoBlob, candidateId]);
 
   // Show lockout screen if locked
   if (isLocked) {
@@ -581,14 +524,7 @@ export default function TestPage() {
               />
             </div>
 
-            {cameraError && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300">
-                <p className="text-sm text-red-700 font-medium flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  {cameraError}
-                </p>
-              </div>
-            )}
+
 
             <div className="p-6 rounded-2xl bg-gradient-to-r from-mint-50 to-green-50 border-2 border-[#A8D5BA]">
               <h3 className="font-semibold mb-3 flex items-center gap-2">

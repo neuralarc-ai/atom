@@ -349,7 +349,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         }
 
         // Generate fresh questions for this candidate
-        const skillsArray = JSON.parse(job.skills);
+        const skillsArray = job.skills; // Already an array from getAllJobs
         const prompt = `Generate 21 multiple-choice questions for a ${test.complexity} complexity test for the position of ${job.title}. 
 
 Job Description: ${job.description}

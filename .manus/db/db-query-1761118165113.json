@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, jobId, complexity, createdAt FROM tests ORDER BY createdAt DESC LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id, jobId, complexity, createdAt FROM tests ORDER BY createdAt DESC LIMIT 5",
+  "rows": [
+    {
+      "id": "032fdc53-2d63-4bec-a67b-4f574064727a",
+      "jobId": "0cb5f007-2449-4444-99de-595bd1b69a1b",
+      "complexity": "medium",
+      "createdAt": "2025-10-22 07:03:27"
+    },
+    {
+      "id": "1e0515bf-0093-48f2-a42f-81c12d27e74b",
+      "jobId": "455984d9-8575-4378-9e46-84378202348b",
+      "complexity": "medium",
+      "createdAt": "2025-10-22 06:58:03"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tjobId\tcomplexity\tcreatedAt\n032fdc53-2d63-4bec-a67b-4f574064727a\t0cb5f007-2449-4444-99de-595bd1b69a1b\tmedium\t2025-10-22 07:03:27\n1e0515bf-0093-48f2-a42f-81c12d27e74b\t455984d9-8575-4378-9e46-84378202348b\tmedium\t2025-10-22 06:58:03\n",
+  "stderr": "",
+  "execution_time_ms": 1556
+}
