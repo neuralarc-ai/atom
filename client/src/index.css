@@ -71,12 +71,12 @@
   --border: oklch(0.88 0.04 165);  /* Light mint border */
   --input: oklch(0.88 0.04 165);
   --ring: oklch(0.65 0.18 25);  /* Coral ring */
-  --sidebar: oklch(1 0 0);  /* White sidebar */
-  --sidebar-foreground: oklch(0.25 0.08 170);
-  --sidebar-accent: oklch(0.96 0.04 165);  /* Very light mint */
-  --sidebar-accent-foreground: oklch(0.25 0.08 170);
-  --sidebar-border: oklch(0.92 0.03 165);
-  --sidebar-ring: oklch(0.65 0.18 25);
+  --sidebar: oklch(0.8 0.08 165);  /* Mint #A8D5BA sidebar */
+  --sidebar-foreground: oklch(0.25 0.08 170);  /* Dark green text */
+  --sidebar-accent: oklch(0.75 0.1 165);  /* Darker mint for hover */
+  --sidebar-accent-foreground: oklch(0.98 0 0);  /* White text on hover */
+  --sidebar-border: oklch(0.7 0.09 165);  /* Darker mint border */
+  --sidebar-ring: oklch(0.65 0.18 25);  /* Coral ring */
 }
 
 .dark {

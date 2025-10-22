@@ -340,10 +340,10 @@ export default function AdminDashboard() {
                 );
                 
                 const gradients = [
-                  { bg: "from-orange-500 to-red-500", text: "text-orange-600", icon: "bg-orange-100" },
-                  { bg: "from-lime-500 to-yellow-500", text: "text-lime-600", icon: "bg-lime-100" },
-                  { bg: "from-teal-500 to-cyan-500", text: "text-teal-600", icon: "bg-teal-100" },
-                  { bg: "from-purple-500 to-pink-500", text: "text-purple-600", icon: "bg-purple-100" },
+                  { bg: "from-[#FF6347] to-[#ff8570]", text: "text-[#FF6347]", icon: "bg-[#FF6347]/10" },
+                  { bg: "from-[#C4D82E] to-[#d4e556]", text: "text-[#C4D82E]", icon: "bg-[#C4D82E]/10" },
+                  { bg: "from-[#A8D5BA] to-[#c0e5d0]", text: "text-[#A8D5BA]", icon: "bg-[#A8D5BA]/10" },
+                  { bg: "from-[#FF6347] to-[#C4D82E]", text: "text-[#FF6347]", icon: "bg-gradient-to-br from-[#FF6347]/10 to-[#C4D82E]/10" },
                 ];
                 const gradient = gradients[index % gradients.length];
                 
