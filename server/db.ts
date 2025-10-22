@@ -145,6 +145,12 @@ export async function getTestsByJobId(jobId: string) {
   return await db.select().from(tests).where(eq(tests.jobId, jobId)).orderBy(desc(tests.createdAt));
 }
 
+export async function deleteTest(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(tests).where(eq(tests.id, id));
+}
+
 // ============ Candidates ============
 export async function createCandidate(candidate: InsertCandidate) {
   const db = await getDb();

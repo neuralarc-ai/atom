@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { ClipboardList, Copy, Plus } from "lucide-react";
+import { ClipboardList, Copy, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +26,8 @@ export default function TestsPage() {
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState("");
   const [complexity, setComplexity] = useState<"low" | "medium" | "high">("medium");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
   const { data: jobs = [] } = trpc.jobs.list.useQuery();
@@ -36,6 +38,18 @@ export default function TestsPage() {
       utils.tests.list.invalidate();
       setIsGenerateOpen(false);
       toast.success("Test generated successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteMutation = trpc.tests.delete.useMutation({
+    onSuccess: () => {
+      utils.tests.list.invalidate();
+      setDeleteDialogOpen(false);
+      setTestToDelete(null);
+      toast.success("Test deleted successfully");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -116,15 +130,27 @@ export default function TestsPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                       {questions.length} questions • 20 minutes
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => copyTestLink(test.id)}
-                    >
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy Test Link
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => copyTestLink(test.id)}
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy Test Link
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTestToDelete(test.id);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -190,6 +216,30 @@ export default function TestsPage() {
             </Button>
             <Button onClick={handleGenerate} disabled={generateMutation.isPending}>
               {generateMutation.isPending ? "Generating..." : "Generate Test"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Test</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this test? This action cannot be undone and will remove all associated data.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => testToDelete && deleteMutation.mutate({ id: testToDelete })}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

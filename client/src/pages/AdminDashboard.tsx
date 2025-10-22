@@ -1,7 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock, Trophy, AlertCircle } from "lucide-react";
+import { Briefcase, ClipboardList, TrendingUp, Users, Award, Clock, Trophy, AlertCircle, ArrowUpRight } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data: jobs = [], isLoading: jobsLoading } = trpc.jobs.list.useQuery();
@@ -31,62 +31,15 @@ export default function AdminDashboard() {
         }, 0) / completedCandidates.length
       : 0;
 
-  const completionRate =
-    candidates.length > 0 ? (completedCandidates.length / candidates.length) * 100 : 0;
-
-  const successRate =
-    completedCandidates.length > 0 ? (topPerformers.length / completedCandidates.length) * 100 : 0;
-
-  const jobStats = jobs.map((job) => {
-    const jobTests = tests.filter((t) => t.jobId === job.id);
-    const jobCandidates = jobTests.flatMap((test) =>
-      candidates.filter((c) => c.testId === test.id)
-    );
-    return {
-      ...job,
-      testCount: jobTests.length,
-      candidateCount: jobCandidates.length,
-    };
-  });
-
-  const stats = [
-    {
-      title: "Total Jobs",
-      value: jobs.length,
-      icon: Briefcase,
-      description: "Active job roles",
-      gradient: "gradient-coral",
-      color: "text-[#FF6347]",
-    },
-    {
-      title: "Tests Generated",
-      value: tests.length,
-      icon: ClipboardList,
-      description: "Total assessments",
-      gradient: "gradient-lime",
-      color: "text-[#C4D82E]",
-    },
-    {
-      title: "Candidates",
-      value: candidates.length,
-      icon: Users,
-      description: `${completedCandidates.length} completed`,
-      gradient: "gradient-mint",
-      color: "text-[#A8D5BA]",
-    },
-    {
-      title: "Average Score",
-      value: `${averageScore.toFixed(1)}/21`,
-      icon: TrendingUp,
-      description: `${completionRate.toFixed(0)}% completion rate`,
-      gradient: "gradient-coral",
-      color: "text-[#FF6347]",
-    },
-  ];
+  const totalQuestions = 21;
+  const successRate = completedCandidates.length > 0
+    ? (topPerformers.length / completedCandidates.length) * 100
+    : 0;
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 pb-8">
+      <div className="space-y-8 p-8">
+        {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 gradient-coral opacity-10 rounded-3xl blur-3xl" />
           <div className="relative">
@@ -95,37 +48,89 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
-            <Card
-              key={index}
-              className="bento-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-            >
-              <div className={`h-3 ${stat.gradient}`} />
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    {stat.title}
-                  </CardTitle>
-                  <div className={`p-3 rounded-2xl ${stat.gradient} shadow-md`}>
-                    <stat.icon className="h-5 w-5 text-white" />
-                  </div>
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
+          {/* Total Jobs - Compact */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+            <div className="absolute inset-0 gradient-coral opacity-5 group-hover:opacity-10 transition-opacity" />
+            <CardContent className="p-6 relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 rounded-2xl gradient-coral">
+                  <Briefcase className="h-6 w-6 text-white" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
-                <p className="text-sm text-muted-foreground">{stat.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Total Jobs</p>
+                <p className="text-4xl font-bold tracking-tight">{jobs.length}</p>
+                <p className="text-xs text-muted-foreground">Active job roles</p>
+              </div>
+            </CardContent>
+          </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="bento-card border-0 shadow-lg lg:col-span-2">
-            <CardHeader>
-              <div className="flex items-center gap-3">
+          {/* Tests Generated - Compact */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+            <div className="absolute inset-0 gradient-lime opacity-5 group-hover:opacity-10 transition-opacity" />
+            <CardContent className="p-6 relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 rounded-2xl gradient-lime">
+                  <ClipboardList className="h-6 w-6 text-white" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Tests Generated</p>
+                <p className="text-4xl font-bold tracking-tight">{tests.length}</p>
+                <p className="text-xs text-muted-foreground">Total assessments</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Candidates - Compact */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+            <div className="absolute inset-0 gradient-mint opacity-5 group-hover:opacity-10 transition-opacity" />
+            <CardContent className="p-6 relative">
+              <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-2xl gradient-mint">
                   <Users className="h-6 w-6 text-white" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Candidates</p>
+                <p className="text-4xl font-bold tracking-tight">{candidates.length}</p>
+                <p className="text-xs text-muted-foreground">{completedCandidates.length} completed</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Average Score - Compact */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+            <div className="absolute inset-0 gradient-coral opacity-5 group-hover:opacity-10 transition-opacity" />
+            <CardContent className="p-6 relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 rounded-2xl gradient-coral">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Average Score</p>
+                <p className="text-4xl font-bold tracking-tight">{averageScore.toFixed(1)}/{totalQuestions}</p>
+                <p className="text-xs text-muted-foreground">{completedCandidates.length > 0 ? Math.round((averageScore / totalQuestions) * 100) : 0}% completion rate</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Second Row - Larger Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Candidates - Spans 2 columns */}
+          <Card className="lg:col-span-2 border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl gradient-mint">
+                  <Users className="h-5 w-5 text-white" />
                 </div>
                 <CardTitle className="text-2xl">Recent Candidates</CardTitle>
               </div>
@@ -133,60 +138,56 @@ export default function AdminDashboard() {
             <CardContent>
               {sortedCandidates.length === 0 ? (
                 <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3 opacity-50" />
                   <p className="text-muted-foreground">No completed tests yet</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {sortedCandidates.slice(0, 5).map((candidate) => {
                     const isPassed = candidate.percentage >= 85;
                     return (
                       <div
                         key={candidate.id}
-                        className={`flex items-center justify-between p-5 rounded-2xl transition-all ${
+                        className={`p-4 rounded-2xl border-2 transition-all hover:shadow-md ${
                           isPassed
-                            ? "bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200"
-                            : "bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200"
+                            ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+                            : "bg-gradient-to-r from-orange-50 to-red-50 border-orange-200"
                         }`}
                       >
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg ${
-                              isPassed ? "gradient-lime" : "gradient-coral"
-                            }`}
-                          >
-                            {candidate.name.charAt(0).toUpperCase()}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                              isPassed ? "gradient-lime text-white" : "gradient-coral text-white"
+                            }`}>
+                              {candidate.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">{candidate.name}</p>
+                              <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                              {isPassed ? (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Trophy className="h-3 w-3 text-green-600" />
+                                  <span className="text-xs font-medium text-green-600">Top Performer</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <AlertCircle className="h-3 w-3 text-orange-600" />
+                                  <span className="text-xs font-medium text-orange-600">Did not pass</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-lg">{candidate.name}</p>
-                            <p className="text-sm text-muted-foreground">{candidate.email}</p>
-                            {isPassed ? (
-                              <div className="flex items-center gap-2 mt-1">
-                                <Trophy className="h-4 w-4 text-green-600" />
-                                <span className="text-xs font-medium text-green-600">Top Performer</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 mt-1">
-                                <AlertCircle className="h-4 w-4 text-orange-600" />
-                                <span className="text-xs font-medium text-orange-600">Did not pass</span>
-                              </div>
-                            )}
+                          <div className="text-right">
+                            <p className={`text-3xl font-bold ${isPassed ? "text-green-600" : "text-orange-600"}`}>
+                              {Math.round(candidate.percentage)}%
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {candidate.score}/{candidate.total}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(candidate.completedAt!).toLocaleDateString()}
+                            </p>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-3xl font-bold ${
-                              isPassed ? "text-green-600" : "text-orange-600"
-                            }`}
-                          >
-                            {candidate.percentage.toFixed(0)}%
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {candidate.score}/{candidate.total}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(candidate.completedAt!).toLocaleDateString()}
-                          </p>
                         </div>
                       </div>
                     );
@@ -196,66 +197,78 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bento-card border-0 shadow-lg gradient-lime text-white">
-            <CardContent className="p-8">
+          {/* Success Rate - Tall card */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+            <div className="absolute inset-0 gradient-lime opacity-20" />
+            <CardContent className="p-8 relative h-full flex flex-col justify-between">
               <div className="flex items-center gap-3 mb-6">
-                <Award className="h-8 w-8" />
-                <h3 className="text-2xl font-bold">Success Rate</h3>
+                <div className="p-2 rounded-xl bg-white/50">
+                  <Award className="h-5 w-5 text-[#5A7C3F]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#5A7C3F]">Success Rate</h3>
               </div>
-              <div className="text-7xl font-bold mb-4">{successRate.toFixed(0)}%</div>
-              <p className="text-lg mb-6 text-white/90">
-                Candidates scoring 85%+
-              </p>
-              <div className="space-y-3 pt-6 border-t border-white/20">
-                <div className="flex justify-between items-center">
-                  <span className="text-white/80">Successful</span>
-                  <span className="font-bold">
-                    {topPerformers.length} / {completedCandidates.length}
-                  </span>
+              
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-7xl font-bold text-[#5A7C3F] mb-2">{Math.round(successRate)}%</p>
+                  <p className="text-sm text-[#5A7C3F]/80 font-medium">Candidates scoring 85%+</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-6 border-t border-[#5A7C3F]/20">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#5A7C3F]/80">Successful</span>
+                  <span className="font-bold text-[#5A7C3F]">{topPerformers.length} / {completedCandidates.length}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="bento-card border-0 shadow-lg">
+        {/* Job Roles Grid */}
+        <Card className="border-0 shadow-lg">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-2xl gradient-coral">
-                <Briefcase className="h-6 w-6 text-white" />
+              <div className="p-2 rounded-xl gradient-coral">
+                <Briefcase className="h-5 w-5 text-white" />
               </div>
               <CardTitle className="text-2xl">Job Roles</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobStats.slice(0, 6).map((job, idx) => {
-                const gradients = ["gradient-coral", "gradient-lime", "gradient-mint"];
-                const colors = ["#FF6347", "#C4D82E", "#A8D5BA"];
-                const gradient = gradients[idx % 3];
-                const color = colors[idx % 3];
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {jobs.map((job) => {
+                const jobTests = tests.filter((t) => t.jobId === job.id);
+                const jobCandidates = candidates.filter((c) =>
+                  jobTests.some((t) => t.id === c.testId)
+                );
+                const borderColor = 
+                  job.id.charCodeAt(0) % 3 === 0 ? "border-l-[#FF6347]" :
+                  job.id.charCodeAt(0) % 3 === 1 ? "border-l-[#C4D82E]" : "border-l-[#A8D5BA]";
+                
                 return (
                   <div
                     key={job.id}
-                    className="p-5 rounded-2xl border-2 hover:shadow-md transition-all"
-                    style={{ borderLeftWidth: "6px", borderLeftColor: color }}
+                    className={`p-4 rounded-xl border-l-4 ${borderColor} bg-gradient-to-r from-white to-gray-50 hover:shadow-md transition-all`}
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-semibold text-lg">{job.title}</h4>
-                      <div className={`p-2 rounded-xl ${gradient}`}>
+                      <h3 className="font-bold text-lg leading-tight">{job.title}</h3>
+                      <div className={`p-2 rounded-lg ${
+                        job.id.charCodeAt(0) % 3 === 0 ? "gradient-coral" :
+                        job.id.charCodeAt(0) % 3 === 1 ? "gradient-lime" : "gradient-mint"
+                      }`}>
                         <Briefcase className="h-4 w-4 text-white" />
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{job.experience}</p>
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <ClipboardList className="h-4 w-4" style={{ color }} />
-                        <span className="font-medium">{job.testCount} tests</span>
+                        <ClipboardList className="h-3 w-3" />
+                        <span>{jobTests.length} tests</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" style={{ color }} />
-                        <span className="font-medium">{job.candidateCount} candidates</span>
+                        <Users className="h-3 w-3" />
+                        <span>{jobCandidates.length} candidates</span>
                       </div>
                     </div>
                   </div>
@@ -268,3 +281,4 @@ export default function AdminDashboard() {
     </DashboardLayout>
   );
 }
+

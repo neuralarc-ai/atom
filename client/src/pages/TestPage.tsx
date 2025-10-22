@@ -221,9 +221,17 @@ export default function TestPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full gradient-coral flex items-center justify-center text-white font-bold text-lg">
-                  A
-                </div>
+                <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad-header-logo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="url(#grad-header-logo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="url(#grad-header-logo)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <defs>
+                    <linearGradient id="grad-header-logo" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#FF6347"/>
+                      <stop offset="1" stopColor="#C4D82E"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
                 <div>
                   <h1 className="text-xl font-bold">Atom</h1>
                   <p className="text-sm text-muted-foreground">
@@ -335,13 +343,21 @@ export default function TestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md border-0 shadow-2xl">
         <CardContent className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto rounded-full gradient-coral flex items-center justify-center text-white font-bold text-3xl mb-4">
-              A
-            </div>
+            <svg className="w-20 h-20 mx-auto mb-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad-test-logo)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="url(#grad-test-logo)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="url(#grad-test-logo)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs>
+                <linearGradient id="grad-test-logo" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#FF6347"/>
+                  <stop offset="1" stopColor="#C4D82E"/>
+                </linearGradient>
+              </defs>
+            </svg>
             <h1 className="text-3xl font-bold text-gradient mb-2">Atom</h1>
             <p className="text-muted-foreground">Assessment Test</p>
           </div>
