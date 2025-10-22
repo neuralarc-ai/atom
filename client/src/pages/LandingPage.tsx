@@ -18,17 +18,26 @@ export default function LandingPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Custom authentication - only allow specific admin account
-    if (username === "at@he2.ai" && password === "neuralarc") {
+    // Custom authentication - allow specific admin accounts
+    const validCredentials = [
+      { email: "at@he2.ai", password: "neuralarc", name: "Admin" },
+      { email: "demo@he2.ai", password: "demo123", name: "Demo Admin" }
+    ];
+
+    const validUser = validCredentials.find(
+      cred => cred.email === username && cred.password === password
+    );
+
+    if (validUser) {
       // Store auth token
       localStorage.setItem("atom_admin_token", "authenticated");
       localStorage.setItem("atom_admin_user", JSON.stringify({
-        email: "at@he2.ai",
-        name: "Admin",
+        email: validUser.email,
+        name: validUser.name,
         role: "admin"
       }));
       
-      toast.success("Welcome to Atom!");
+      toast.success(`Welcome to Atom, ${validUser.name}!`);
       setTimeout(() => {
         setLocation("/admin");
       }, 500);
