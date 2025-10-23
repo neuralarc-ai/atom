@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, name, email, status, testId, startedAt, completedAt FROM candidates LIMIT 10",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3BkiXrRHAotHRjV.681f9d7d682c --database 8NpVSJYZ6yseMP8v59d25h --execute SELECT id, name, email, status, testId, startedAt, completedAt FROM candidates LIMIT 10",
+  "rows": [
+    {
+      "id": "20a26fb5-0cfa-43b1-bfc3-7c60463959f8",
+      "name": "He2",
+      "email": "aniket@he2.ai",
+      "status": "completed",
+      "testId": "ec107aaa-f5ea-4cb6-a6d9-a5ec9bf7006f",
+      "startedAt": "2025-10-23 01:17:27",
+      "completedAt": "2025-10-23 01:18:07"
+    },
+    {
+      "id": "5c616cea-456a-4ad6-91ba-aa7c3c2145ad",
+      "name": "Final Test User",
+      "email": "finaltest@example.com",
+      "status": "locked_out",
+      "testId": "1f5ddae3-3d29-42b2-ae83-bb6f56b360f6",
+      "startedAt": "2025-10-22 17:29:16",
+      "completedAt": "NULL"
+    },
+    {
+      "id": "7fd401c9-3124-494e-85e9-271babac3ce0",
+      "name": "Test Candidate",
+      "email": "test@example.com",
+      "status": "in_progress",
+      "testId": "ec107aaa-f5ea-4cb6-a6d9-a5ec9bf7006f",
+      "startedAt": "2025-10-23 03:48:43",
+      "completedAt": "NULL"
+    },
+    {
+      "id": "d81d659b-55ca-47da-b7da-7e45dacd1425",
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "status": "in_progress",
+      "testId": "1f5ddae3-3d29-42b2-ae83-bb6f56b360f6",
+      "startedAt": "2025-10-22 17:44:47",
+      "completedAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\tstatus\ttestId\tstartedAt\tcompletedAt\n20a26fb5-0cfa-43b1-bfc3-7c60463959f8\tHe2\taniket@he2.ai\tcompleted\tec107aaa-f5ea-4cb6-a6d9-a5ec9bf7006f\t2025-10-23 01:17:27\t2025-10-23 01:18:07\n5c616cea-456a-4ad6-91ba-aa7c3c2145ad\tFinal Test User\tfinaltest@example.com\tlocked_out\t1f5ddae3-3d29-42b2-ae83-bb6f56b360f6\t2025-10-22 17:29:16\tNULL\n7fd401c9-3124-494e-85e9-271babac3ce0\tTest Candidate\ttest@example.com\tin_progress\tec107aaa-f5ea-4cb6-a6d9-a5ec9bf7006f\t2025-10-23 03:48:43\tNULL\nd81d659b-55ca-47da-b7da-7e45dacd1425\tJane Smith\tjane@example.com\tin_progress\t1f5ddae3-3d29-42b2-ae83-bb6f56b360f6\t2025-10-22 17:44:47\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1640
+}

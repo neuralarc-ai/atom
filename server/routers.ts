@@ -315,23 +315,36 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         // Check if candidate with this email has already attempted this test
         const existingCandidate = await getCandidateByEmailAndTest(input.email, input.testId);
         if (existingCandidate) {
-          // Block if locked out (regardless of status name)
+          // Block if completed (no reappearance approved)
+          if (existingCandidate.status === 'completed' && !existingCandidate.reappearanceApprovedAt) {
+            throw new TRPCError({ 
+              code: "FORBIDDEN", 
+              message: "You have already completed this test." 
+            });
+          }
+          
+          // Block if locked out (no reappearance approved)
           if ((existingCandidate.status === 'locked_out' || existingCandidate.status === 'reappearance_requested') && !existingCandidate.reappearanceApprovedAt) {
             throw new TRPCError({ 
               code: "FORBIDDEN", 
               message: "You have been locked out of this test. Your reappearance request is pending admin approval." 
             });
           }
-          // Block if completed
-          if (existingCandidate.status === 'completed') {
-            throw new TRPCError({ 
-              code: "FORBIDDEN", 
-              message: "You have already completed this test." 
-            });
-          }
+          
           // Allow if approved for reappearance - reset their test
           if (existingCandidate.reappearanceApprovedAt) {
-            // Reset candidate for fresh attempt
+            // Get test details to generate new questions
+            const test = await getTestById(input.testId);
+            if (!test || !test.questions) {
+              throw new TRPCError({ code: "NOT_FOUND", message: "Test not found or has no questions" });
+            }
+            
+            // Parse and select 21 random questions
+            const allQuestions = JSON.parse(test.questions);
+            const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            const selectedQuestions = shuffled.slice(0, 21);
+            
+            // Reset candidate for fresh attempt with new questions
             await updateCandidate(existingCandidate.id, {
               status: 'in_progress',
               startedAt: new Date(),
@@ -339,13 +352,22 @@ Make sure the questions are relevant to the job role and test the candidate's kn
               score: null,
               answers: null,
               lockoutReason: null,
+              questions: JSON.stringify(selectedQuestions),
+              reappearanceApprovedAt: null, // Clear the approval flag
             });
             return { candidateId: existingCandidate.id };
           }
-          // If in progress (normal case), allow to continue
+          
+          // If in progress, allow to continue with existing questions
           if (existingCandidate.status === 'in_progress') {
             return { candidateId: existingCandidate.id };
           }
+          
+          // If we reach here, something unexpected happened - block to be safe
+          throw new TRPCError({ 
+            code: "FORBIDDEN", 
+            message: "Unable to start test. Please contact administrator." 
+          });
         }
 
         // Get test details
