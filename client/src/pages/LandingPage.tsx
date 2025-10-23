@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, Target, Users, BarChart3, Shield, Zap } from "lucide-react";
 import { toast } from "sonner";
+import AnimatedParticles from "@/components/AnimatedParticles";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
@@ -111,7 +112,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9]">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] relative overflow-hidden">
+      <AnimatedParticles />
+      <div className="relative z-10">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
@@ -277,6 +280,21 @@ export default function LandingPage() {
             <Card className="border-2 border-[#FF6347] hover:shadow-xl transition-all">
               <CardHeader>
                 <CardTitle className="text-[#1B5E20] text-2xl">Technical Assessments</CardTitle>
+                <div className="mt-3 mb-4 p-3 bg-[#FFF5EE] rounded-lg border border-[#FF6347]">
+                  <div className="text-sm font-semibold text-[#1B5E20] mb-2">Assessment Breakdown:</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">Multiple Choice Questions</span>
+                    <span className="font-bold text-[#FF6347]">60%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-700">Coding Challenges</span>
+                    <span className="font-bold text-[#FF6347]">30%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-700">Code Review Tasks</span>
+                    <span className="font-bold text-[#FF6347]">10%</span>
+                  </div>
+                </div>
                 <CardDescription className="text-base">
                   <ul className="space-y-3 mt-4">
                     <li className="flex items-start">
@@ -299,6 +317,21 @@ export default function LandingPage() {
             <Card className="border-2 border-[#1B5E20] hover:shadow-xl transition-all">
               <CardHeader>
                 <CardTitle className="text-[#1B5E20] text-2xl">Non-Technical Assessments</CardTitle>
+                <div className="mt-3 mb-4 p-3 bg-[#E8F5E9] rounded-lg border border-[#1B5E20]">
+                  <div className="text-sm font-semibold text-[#1B5E20] mb-2">Assessment Breakdown:</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">Scenario-Based Questions</span>
+                    <span className="font-bold text-[#1B5E20]">50%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-700">Behavioral Assessments</span>
+                    <span className="font-bold text-[#1B5E20]">30%</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-700">Role-Specific Tasks</span>
+                    <span className="font-bold text-[#1B5E20]">20%</span>
+                  </div>
+                </div>
                 <CardDescription className="text-base">
                   <ul className="space-y-3 mt-4">
                     <li className="flex items-start">
@@ -394,6 +427,7 @@ export default function LandingPage() {
             </a>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
