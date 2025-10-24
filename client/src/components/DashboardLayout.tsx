@@ -77,7 +77,7 @@ export default function DashboardLayout({
           </div>
           <Button
             onClick={() => {
-              window.location.href = getLoginUrl();
+              window.location.href = '/login';
             }}
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
@@ -113,14 +113,7 @@ function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
-  const { user } = useAuth();
-  
-  // Custom logout function
-  const logout = () => {
-    localStorage.removeItem("atom_admin_token");
-    localStorage.removeItem("atom_admin_user");
-    window.location.href = "/";
-  };
+  const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";

@@ -21,12 +21,12 @@ export const appRouter = router({
 
   jobs: router({
     list: publicProcedure.query(async () => {
-      const { getAllJobs } = await import("./db");
+      const { getAllJobs } = await import("./db-supabase");
       return await getAllJobs();
     }),
     getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const { getJobById } = await import("./db");
-      return await getJobById(input.id);
+      const { getJob } = await import("./db-supabase");
+      return await getJob(input.id);
     }),
     generateJobDetails: protectedProcedure
       .input(z.object({ title: z.string() }))
@@ -41,11 +41,13 @@ export const appRouter = router({
 2. Required skills (5-8 key skills)
 3. Experience requirement (e.g., "2-4 years", "5+ years")
 
-Return as JSON with this structure:
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text. The response must be parseable JSON.
+
+Example format:
 {
   "description": "Full job description here",
-  "skills": ["Skill 1", "Skill 2", ...],
-  "experience": "Experience requirement"
+  "skills": ["Skill 1", "Skill 2", "Skill 3"],
+  "experience": "2-4 years"
 }`;
 
         const response = await invokeLLM({
@@ -76,8 +78,17 @@ Return as JSON with this structure:
         });
 
         const content = response.choices[0].message.content as string;
-        const jobDetails = JSON.parse(content || "{}");
-        return jobDetails;
+        
+        try {
+          const jobDetails = JSON.parse(content || "{}");
+          return jobDetails;
+        } catch (error) {
+          console.error("Failed to parse LLM response as JSON:", content);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: "Failed to generate job details. Please try again." 
+          });
+        }
       }),
     create: protectedProcedure
       .input(
@@ -92,7 +103,7 @@ Return as JSON with this structure:
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { createJob } = await import("./db");
+        const { createJob } = await import("./db-supabase");
         await createJob({
           title: input.title,
           description: input.description,
@@ -115,7 +126,7 @@ Return as JSON with this structure:
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { updateJob } = await import("./db");
+        const { updateJob } = await import("./db-supabase");
         const updateData: any = {};
         if (input.title) updateData.title = input.title;
         if (input.description) updateData.description = input.description;
@@ -128,7 +139,7 @@ Return as JSON with this structure:
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { deleteJob } = await import("./db");
+      const { deleteJob } = await import("./db-supabase");
       await deleteJob(input.id);
       return { success: true };
     }),
@@ -139,23 +150,25 @@ Return as JSON with this structure:
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { getAllTests } = await import("./db");
+      const { getAllTests } = await import("./db-supabase");
       return await getAllTests();
     }),
     getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const { getTestById } = await import("./db");
-      return await getTestById(input.id);
+      const { getTest } = await import("./db-supabase");
+      return await getTest(input.id);
     }),
     getByShortCode: publicProcedure.input(z.object({ shortCode: z.string() })).query(async ({ input }) => {
-      const { getTestByShortCode } = await import("./db");
+      const { getTestByShortCode } = await import("./db-supabase");
       return await getTestByShortCode(input.shortCode);
     }),
     getByJobId: protectedProcedure.input(z.object({ jobId: z.string() })).query(async ({ input, ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { getTestsByJobId } = await import("./db");
-      return await getTestsByJobId(input.jobId);
+      // TODO: Implement getTestsByJobId for Supabase
+      const { getAllTests } = await import("./db-supabase");
+      const tests = await getAllTests();
+      return tests.filter(t => t.job_id === input.jobId);
     }),
     generate: protectedProcedure
       .input(
@@ -168,11 +181,11 @@ Return as JSON with this structure:
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { createTest, getJobById } = await import("./db");
+        const { createTest, getJob } = await import("./db-supabase");
         const { invokeLLM } = await import("./_core/llm");
 
         // Get job details
-        const job = await getJobById(input.jobId);
+        const job = await getJob(input.jobId);
         if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
@@ -191,15 +204,19 @@ For each question, provide:
 3. The correct answer (A, B, C, or D)
 4. A brief explanation
 
-Return the response as a JSON array with this structure:
-[
-  {
-    "question": "Question text here",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correctAnswer": "A",
-    "explanation": "Brief explanation"
-  }
-]
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text. The response must be parseable JSON.
+
+Return the response as a JSON object with this exact structure:
+{
+  "questions": [
+    {
+      "question": "Question text here",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "A",
+      "explanation": "Brief explanation"
+    }
+  ]
+}
 
 Make sure the questions are relevant to the job role and test the candidate's knowledge of the required skills.`;
 
@@ -243,17 +260,33 @@ Make sure the questions are relevant to the job role and test the candidate's kn
 
         const content = response.choices[0].message.content;
         const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
-        const parsedQuestions = JSON.parse(contentStr || "{}");
+        
+        console.log("LLM Response:", contentStr);
+        
+        try {
+          const parsedQuestions = JSON.parse(contentStr || "{}");
+          console.log("Parsed Questions:", parsedQuestions);
+          
+          if (!parsedQuestions.questions || !Array.isArray(parsedQuestions.questions)) {
+            throw new Error("Invalid questions format from LLM");
+          }
 
-        // Create test
-        const result = await createTest({
-          jobId: input.jobId,
-          complexity: input.complexity,
-          questions: JSON.stringify(parsedQuestions.questions),
-        });
+          // Create test
+          const result = await createTest({
+            job_id: input.jobId,
+            complexity: input.complexity,
+            questions: JSON.stringify(parsedQuestions.questions),
+          });
+        } catch (error) {
+          console.error("Error in test generation:", error);
+          throw new TRPCError({ 
+            code: "INTERNAL_SERVER_ERROR", 
+            message: "Failed to generate test questions. Please try again." 
+          });
+        }
 
         // Get the created test ID from the database
-        const { getAllTests, updateTestShortCode } = await import("./db");
+        const { getAllTests, updateTestShortCode } = await import("./db-supabase");
         const { generateShortCode } = await import("./urlEncoder");
         const tests = await getAllTests();
         const latestTest = tests[0]; // Most recent test
@@ -272,7 +305,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { deleteTest } = await import("./db");
+        const { deleteTest } = await import("./db-supabase");
         await deleteTest(input.id);
         return { success: true };
       }),
@@ -283,22 +316,23 @@ Make sure the questions are relevant to the job role and test the candidate's kn
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { getAllCandidates } = await import("./db");
+      const { getAllCandidates } = await import("./db-supabase");
       return await getAllCandidates();
     }),
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ input, ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { getCandidateById } = await import("./db");
-      return await getCandidateById(input.id);
+      const { getCandidate } = await import("./db-supabase");
+      return await getCandidate(input.id);
     }),
     getByTestId: protectedProcedure.input(z.object({ testId: z.string() })).query(async ({ input, ctx }) => {
       if (ctx.user.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
       }
-      const { getCandidatesByTestId } = await import("./db");
-      return await getCandidatesByTestId(input.testId);
+      const { getAllCandidates } = await import("./db-supabase");
+      const candidates = await getAllCandidates();
+      return candidates.filter(c => c.test_id === input.testId);
     }),
     start: publicProcedure
       .input(
@@ -309,7 +343,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { createCandidate, getTestById, getJobById, getCandidateByEmailAndTest, updateCandidate } = await import("./db");
+        const { createCandidate, getTest, getJob, getCandidateByEmailAndTest, updateCandidate } = await import("./db-supabase");
         const { invokeLLM } = await import("./_core/llm");
 
         // Check if candidate with this email has already attempted this test
@@ -334,7 +368,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
           // Allow if approved for reappearance - reset their test
           if (existingCandidate.reappearanceApprovedAt) {
             // Get test details to generate new questions
-            const test = await getTestById(input.testId);
+            const test = await getTest(input.testId);
             if (!test || !test.questions) {
               throw new TRPCError({ code: "NOT_FOUND", message: "Test not found or has no questions" });
             }
@@ -371,7 +405,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         }
 
         // Get test details
-        const test = await getTestById(input.testId);
+        const test = await getTest(input.testId);
         if (!test) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Test not found" });
         }
@@ -390,14 +424,14 @@ Make sure the questions are relevant to the job role and test the candidate's kn
 
         // Create candidate with their unique set of 21 questions
         const result = await createCandidate({
-          testId: input.testId,
+          test_id: input.testId,
           name: input.name,
           email: input.email,
           questions: JSON.stringify(selectedQuestions),
         });
 
         // Get the created candidate ID
-        const { getAllCandidates } = await import("./db");
+        const { getAllCandidates } = await import("./db-supabase");
         const candidates = await getAllCandidates();
         const latestCandidate = candidates[0];
         
@@ -411,10 +445,10 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { updateCandidate, getCandidateById } = await import("./db");
+        const { updateCandidate, getCandidate } = await import("./db-supabase");
 
         // Get candidate
-        const candidate = await getCandidateById(input.candidateId);
+        const candidate = await getCandidate(input.candidateId);
         if (!candidate) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Candidate not found" });
         }
@@ -428,7 +462,9 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         // Calculate score
         let score = 0;
         for (let i = 0; i < questions.length; i++) {
-          if (input.answers[i] === questions[i].correctAnswer) {
+          // Convert letter answer (A, B, C, D) to numeric index (0, 1, 2, 3)
+          const correctAnswerIndex = questions[i].correctAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
+          if (input.answers[i] === correctAnswerIndex) {
             score++;
           }
         }
@@ -440,9 +476,9 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         await updateCandidate(input.candidateId, {
           answers: JSON.stringify(input.answers),
           score: score,
-          totalQuestions: questions.length,
+          total_questions: questions.length,
           status: "completed",
-          completedAt: new Date(),
+          completed_at: new Date(),
         });
 
         return { 
@@ -462,16 +498,16 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         })
       )
       .mutation(async ({ input }) => {
-        const { updateCandidate, getCandidateById } = await import("./db");
+        const { updateCandidate, getCandidate } = await import("./db-supabase");
 
-        const candidate = await getCandidateById(input.candidateId);
+        const candidate = await getCandidate(input.candidateId);
         if (!candidate) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Candidate not found" });
         }
 
         await updateCandidate(input.candidateId, {
           status: "locked_out",
-          lockoutReason: input.reason,
+          lockout_reason: input.reason,
           answers: JSON.stringify(input.answers),
         });
 
@@ -480,11 +516,11 @@ Make sure the questions are relevant to the job role and test the candidate's kn
     requestReappearance: publicProcedure
       .input(z.object({ candidateId: z.string() }))
       .mutation(async ({ input }) => {
-        const { updateCandidate } = await import("./db");
+        const { updateCandidate } = await import("./db-supabase");
 
         await updateCandidate(input.candidateId, {
           status: "reappearance_requested",
-          reappearanceRequestedAt: new Date(),
+          reappearance_requested_at: new Date(),
         });
 
         return { success: true };
@@ -495,13 +531,13 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { updateCandidate } = await import("./db");
+        const { updateCandidate } = await import("./db-supabase");
 
         await updateCandidate(input.candidateId, {
           status: "in_progress",
-          reappearanceApprovedAt: new Date(),
-          reappearanceApprovedBy: ctx.user.id,
-          lockoutReason: null,
+          reappearance_approved_at: new Date(),
+          reappearance_approved_by: ctx.user.id,
+          lockout_reason: null,
         });
 
         return { success: true };
@@ -515,7 +551,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
       )
       .mutation(async ({ input }) => {
         const { storagePut } = await import("./storage");
-        const { updateCandidate } = await import("./db");
+        const { updateCandidate } = await import("./db-supabase");
 
         // Convert base64 to buffer
         const base64Data = input.videoData.split(',')[1];
@@ -542,7 +578,7 @@ Make sure the questions are relevant to the job role and test the candidate's kn
         if (ctx.user.role !== "admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
         }
-        const { deleteCandidate } = await import("./db");
+        const { deleteCandidate } = await import("./db-supabase");
         await deleteCandidate(input.id);
         return { success: true };
       }),

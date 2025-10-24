@@ -210,7 +210,7 @@ export default function TestsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {tests.map((test) => {
-              const job = jobs.find((j) => j.id === test.jobId);
+              const job = jobs.find((j) => j.id === test.job_id);
               const questions = JSON.parse(test.questions);
               const colorScheme = complexityColors[test.complexity];
               
@@ -266,7 +266,7 @@ export default function TestsPage() {
                       {job?.title || "Unknown Job"}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Created {new Date(test.createdAt!).toLocaleDateString()}
+                      Created {new Date(test.created_at).toLocaleDateString()}
                     </p>
                     
                     {/* Test Info */}

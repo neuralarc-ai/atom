@@ -30,8 +30,8 @@ export default function CandidatesPage() {
     },
   });
 
-  const completedCandidates = candidates.filter((c) => c.completedAt);
-  const inProgressCandidates = candidates.filter((c) => !c.completedAt);
+  const completedCandidates = candidates.filter((c) => c.completed_at);
+  const inProgressCandidates = candidates.filter((c) => !c.completed_at);
 
   const handleDelete = (id: string) => {
     deleteMutation.mutate({ id });
@@ -117,11 +117,11 @@ export default function CandidatesPage() {
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                Started: {formatDate(candidate.startedAt)}
+                                Started: {formatDate(candidate.started_at)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <CheckCircle2 className="h-3 w-3" />
-                                Completed: {formatDate(candidate.completedAt)}
+                                Completed: {formatDate(candidate.completed_at)}
                               </span>
                             </div>
                           </div>

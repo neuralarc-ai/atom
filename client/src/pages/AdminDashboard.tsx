@@ -109,7 +109,7 @@ export default function AdminDashboard() {
                             <p className="font-semibold text-lg text-[#1B5E20]">{candidate.name}</p>
                             <p className="text-sm text-[#1B5E20]/70">{candidate.email}</p>
                             <p className="text-xs text-[#FF6347] mt-1">
-                              Locked out: {candidate.lockoutReason || "Unknown reason"}
+                              Locked out: {candidate.lockout_reason || "Unknown reason"}
                             </p>
                           </div>
                         </div>
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                       <div>
                         <p className="font-semibold text-[#1B5E20]">{candidate.name}</p>
                         <p className="text-sm text-[#1B5E20]/70">{candidate.email}</p>
-                        <p className="text-xs text-[#FF6347]">Reason: {candidate.lockoutReason || "Unknown"}</p>
+                        <p className="text-xs text-[#FF6347]">Reason: {candidate.lockout_reason || "Unknown"}</p>
                       </div>
                     </div>
                   </div>
@@ -387,8 +387,8 @@ export default function AdminDashboard() {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {jobs.map((job, index) => {
-                const jobTests = tests.filter((t) => t.jobId === job.id);
-                const jobCandidates = candidates.filter((c) => jobTests.some((t) => t.id === c.testId));
+                const jobTests = tests.filter((t) => t.job_id === job.id);
+                const jobCandidates = candidates.filter((c) => jobTests.some((t) => t.id === c.test_id));
 
                 const gradients = [
                   { bg: "from-[#FF6347] to-[#ff8570]", text: "text-[#FF6347]", icon: "bg-[#FF6347]/10" },

@@ -212,11 +212,11 @@ const normalizeToolChoice = (
 const resolveApiUrl = () =>
   ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
     ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+    : "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("GEMINI_API_KEY is not configured.");
   }
 };
 
@@ -279,44 +279,30 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
-  const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
-    messages: messages.map(normalizeMessage),
-  };
-
-  if (tools && tools.length > 0) {
-    payload.tools = tools;
-  }
-
-  const normalizedToolChoice = normalizeToolChoice(
-    toolChoice || tool_choice,
-    tools
-  );
-  if (normalizedToolChoice) {
-    payload.tool_choice = normalizedToolChoice;
-  }
-
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
-  }
-
-  const normalizedResponseFormat = normalizeResponseFormat({
-    responseFormat,
-    response_format,
-    outputSchema,
-    output_schema,
+  // Convert OpenAI format to Gemini format
+  const contents = messages.map(msg => {
+    const normalizedMsg = normalizeMessage(msg);
+    return {
+      role: normalizedMsg.role === "assistant" ? "model" : "user",
+      parts: [{ text: typeof normalizedMsg.content === "string" ? normalizedMsg.content : JSON.stringify(normalizedMsg.content) }]
+    };
   });
 
-  if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
-  }
+  const payload: Record<string, unknown> = {
+    contents,
+    generationConfig: {
+      maxOutputTokens: 32768,
+      temperature: 0.7,
+    }
+  };
 
-  const response = await fetch(resolveApiUrl(), {
+  // Add API key as query parameter for Gemini
+  const apiUrl = `${resolveApiUrl()}?key=${ENV.forgeApiKey}`;
+
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
     },
     body: JSON.stringify(payload),
   });
@@ -328,5 +314,37 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     );
   }
 
-  return (await response.json()) as InvokeResult;
+  const geminiResponse = await response.json();
+  
+  // Extract text content and clean up markdown formatting
+  let content = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated";
+  
+  // Remove markdown code blocks if present
+  if (content.includes("```json")) {
+    content = content.replace(/```json\s*/, "").replace(/```\s*$/, "").trim();
+  } else if (content.includes("```")) {
+    content = content.replace(/```\s*/, "").replace(/```\s*$/, "").trim();
+  }
+  
+  // Convert Gemini response to OpenAI format
+  const result: InvokeResult = {
+    id: `gemini-${Date.now()}`,
+    created: Math.floor(Date.now() / 1000),
+    model: "gemini-2.5-flash",
+    choices: [{
+      index: 0,
+      message: {
+        role: "assistant",
+        content: content
+      },
+      finish_reason: geminiResponse.candidates?.[0]?.finishReason || "stop"
+    }],
+    usage: {
+      prompt_tokens: geminiResponse.usageMetadata?.promptTokenCount || 0,
+      completion_tokens: geminiResponse.usageMetadata?.candidatesTokenCount || 0,
+      total_tokens: geminiResponse.usageMetadata?.totalTokenCount || 0
+    }
+  };
+
+  return result;
 }

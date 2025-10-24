@@ -28,13 +28,9 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: [
-      ".manuspre.computer",
-      ".manus.computer",
-      ".manus-asia.computer",
-      ".manuscomputer.ai",
-      ".manusvm.computer",
       "localhost",
       "127.0.0.1",
+      "atom.neuralarc.ai"
     ],
     fs: {
       strict: true,

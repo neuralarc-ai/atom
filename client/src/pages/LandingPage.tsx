@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Brain, Target, Users, BarChart3, Shield, Zap } from "lucide-react";
 import { toast } from "sonner";
 import AnimatedParticles from "@/components/AnimatedParticles";
+import { signIn } from "@/lib/supabase";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
   const [showLogin, setShowLogin] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,27 +21,19 @@ export default function LandingPage() {
     setIsLoading(true);
 
     try {
-      // Use Supabase Auth for login
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast.success(`Welcome to Atom, ${data.user.email}!`);
+      const response = await signIn(email, password);
+      
+      if (response.success && response.user) {
+        toast.success(`Welcome to Atom, ${response.user.email}!`);
+        // Force a page reload to refresh authentication state
         setTimeout(() => {
-          setLocation("/admin");
+          window.location.href = "/admin";
         }, 500);
-      } else {
-        toast.error(data.error || "Invalid credentials. Access denied.");
-        setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Login failed. Please try again.");
+      toast.error(error.message || "Invalid credentials. Access denied.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -63,13 +56,13 @@ export default function LandingPage() {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
+                  id="email"
                   type="email"
                   placeholder="Enter your email"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="border-[#A8D5BA] focus:border-[#1B5E20]"
                 />
@@ -91,7 +84,7 @@ export default function LandingPage() {
                 className="w-full bg-gradient-to-r from-[#FF6347] to-[#FF8C69] hover:from-[#FF4500] hover:to-[#FF6347] text-white font-semibold py-6"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Signing in..." : "Sign In with Supabase"}
               </Button>
               <Button
                 type="button"

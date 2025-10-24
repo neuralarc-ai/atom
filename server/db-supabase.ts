@@ -223,6 +223,19 @@ export async function getTestByShortCode(shortCode: string): Promise<Test | unde
   return data as Test | undefined;
 }
 
+export async function updateTestShortCode(id: string, shortCode: string): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("tests")
+    .update({ short_code: shortCode })
+    .eq("id", id);
+
+  if (error) {
+    console.error("[Database] Error updating test short code:", error);
+    throw error;
+  }
+}
+
 export async function deleteTest(id: string): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase

@@ -1,61 +1,88 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-})
+// Server-side Supabase authentication helpers
+// These functions communicate with the server's auth endpoints
 
 // Helper function to check if user is authenticated
 export async function isAuthenticated() {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session !== null
+  try {
+    const response = await fetch('/api/auth/me', {
+      credentials: 'include'
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 // Helper function to get current user
 export async function getCurrentUser() {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  try {
+    console.log('Fetching /api/auth/me...');
+    const response = await fetch('/api/auth/me', {
+      credentials: 'include'
+    });
+    console.log('Response status:', response.status);
+    if (response.ok) {
+      const userData = await response.json();
+      console.log('User data from server:', userData);
+      return userData;
+    }
+    console.log('Response not ok, returning null');
+    return null;
+  } catch (error) {
+    console.error('Error in getCurrentUser:', error);
+    return null;
+  }
 }
 
 // Helper function to sign in
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email, password }),
+  });
   
-  if (error) throw error
-  return data
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Login failed');
+  }
+  
+  return data;
 }
 
 // Helper function to sign out
 export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
 }
 
 // Helper function to sign up
 export async function signUp(email: string, password: string, name: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
-      }
-    }
-  })
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email, password, name }),
+  });
   
-  if (error) throw error
-  return data
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.error || 'Registration failed');
+  }
+  
+  return data;
 }
 

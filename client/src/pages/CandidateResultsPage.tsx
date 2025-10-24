@@ -36,12 +36,12 @@ export default function CandidateResultsPage() {
     );
   }
 
-  const test = tests.find((t) => t.id === candidate.testId);
-  const job = test ? jobs.find((j) => j.id === test.jobId) : null;
+  const test = tests.find((t) => t.id === candidate.test_id);
+  const job = test ? jobs.find((j) => j.id === test.job_id) : null;
   const questions = candidate.questions ? JSON.parse(candidate.questions) : [];
   const answers = candidate.answers ? JSON.parse(candidate.answers) : [];
   const score = candidate.score || 0;
-  const totalQuestions = candidate.totalQuestions || 21;
+  const totalQuestions = candidate.total_questions || 21;
   const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
 
   return (
@@ -82,8 +82,8 @@ export default function CandidateResultsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Completed At</p>
                 <p className="text-lg font-medium">
-                  {candidate.completedAt
-                    ? new Date(candidate.completedAt).toLocaleString()
+                  {candidate.completed_at
+                    ? new Date(candidate.completed_at).toLocaleString()
                     : "In Progress"}
                 </p>
               </div>
@@ -96,7 +96,9 @@ export default function CandidateResultsPage() {
           <h2 className="text-xl font-bold">Test Results</h2>
           {questions.map((question: any, idx: number) => {
             const userAnswer = answers[idx];
-            const isCorrect = userAnswer === question.correctAnswer;
+            // Convert letter answer (A, B, C, D) to numeric index (0, 1, 2, 3) for comparison
+            const correctAnswerIndex = question.correctAnswer.charCodeAt(0) - 'A'.charCodeAt(0);
+            const isCorrect = userAnswer === correctAnswerIndex;
             return (
               <Card key={idx}>
                 <CardHeader>
@@ -117,7 +119,7 @@ export default function CandidateResultsPage() {
                 <CardContent className="space-y-3">
                   {question.options.map((option: string, optIdx: number) => {
                     const optionLetter = String.fromCharCode(65 + optIdx);
-                    const isUserAnswer = userAnswer === optionLetter;
+                    const isUserAnswer = userAnswer === optIdx; // Compare numeric index with numeric index
                     const isCorrectAnswer = question.correctAnswer === optionLetter;
 
                     return (

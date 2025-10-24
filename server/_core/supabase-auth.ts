@@ -121,24 +121,24 @@ export class SupabaseAuthService {
       throw new Error("No authentication token provided");
     }
 
-    const session = await this.verifySession(token);
-    if (!session) {
+    // Verify the token with Supabase Auth
+    const supabase = getSupabase();
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
       throw new Error("Invalid or expired session");
     }
 
-    // Get user from database
-    const supabase = getSupabase();
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", session.userId)
-      .single();
-
-    if (error || !user) {
-      throw new Error("User not found");
-    }
-
-    return user;
+    // Map Supabase user to expected User format
+    return {
+      id: user.id,
+      name: user.user_metadata?.name || user.email,
+      email: user.email,
+      role: "admin", // For now, all authenticated users are admins
+      loginMethod: null,
+      createdAt: user.created_at ? new Date(user.created_at) : null,
+      lastSignedIn: user.last_sign_in_at ? new Date(user.last_sign_in_at) : null,
+    };
   }
 
   /**
