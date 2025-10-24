@@ -16,7 +16,7 @@ import TestRedirect from "./pages/TestRedirect";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={AdminDashboard} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/admin/jobs"} component={JobsPage} />
       <Route path={"/admin/tests"} component={TestsPage} />
