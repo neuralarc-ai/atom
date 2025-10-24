@@ -30,7 +30,8 @@ export default defineConfig({
     allowedHosts: [
       "localhost",
       "127.0.0.1",
-      "atom.neuralarc.ai"
+      "atom.neuralarc.ai",
+      "0.0.0.0"
     ],
     fs: {
       strict: true,
