@@ -19,31 +19,28 @@ export default function LandingPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Custom authentication - allow specific admin accounts
-    const validCredentials = [
-      { email: "at@he2.ai", password: "neuralarc", name: "Admin" },
-      { email: "demo@he2.ai", password: "demo123", name: "Demo Admin" }
-    ];
+    try {
+      // Use Supabase Auth for login
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: username, password }),
+      });
 
-    const validUser = validCredentials.find(
-      cred => cred.email === username && cred.password === password
-    );
+      const data = await response.json();
 
-    if (validUser) {
-      // Store auth token
-      localStorage.setItem("atom_admin_token", "authenticated");
-      localStorage.setItem("atom_admin_user", JSON.stringify({
-        email: validUser.email,
-        name: validUser.name,
-        role: "admin"
-      }));
-      
-      toast.success(`Welcome to Atom, ${validUser.name}!`);
-      setTimeout(() => {
-        setLocation("/admin");
-      }, 500);
-    } else {
-      toast.error("Invalid credentials. Access denied.");
+      if (response.ok && data.success) {
+        toast.success(`Welcome to Atom, ${data.user.email}!`);
+        setTimeout(() => {
+          setLocation("/admin");
+        }, 500);
+      } else {
+        toast.error(data.error || "Invalid credentials. Access denied.");
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please try again.");
       setIsLoading(false);
     }
   };
@@ -60,7 +57,7 @@ export default function LandingPage() {
             </div>
             <CardTitle className="text-3xl font-bold text-[#1B5E20]">Atom</CardTitle>
             <CardDescription className="text-base">
-              Neural Arc Internal Portal
+              Neural Arc Internal Portal - Supabase Auth
             </CardDescription>
           </CardHeader>
           <CardContent>
