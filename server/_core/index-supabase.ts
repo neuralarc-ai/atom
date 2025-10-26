@@ -32,6 +32,12 @@ const app = express();
 console.log('[Server] Initializing Express app...');
 console.log('[Server] Vercel environment:', process.env.VERCEL);
 console.log('[Server] Node env:', process.env.NODE_ENV);
+console.log('[Server] All environment variables:', Object.keys(process.env));
+console.log('[Server] Has SUPABASE env vars:', {
+  URL: !!process.env.VITE_SUPABASE_URL,
+  SERVICE_KEY: !!process.env.VITE_SUPABASE_SERVICE_KEY,
+  ANON_KEY: !!process.env.VITE_SUPABASE_ANON_KEY
+});
 
 // Configure body parser with larger size limit for file uploads
 app.use(express.json({ limit: "50mb" }));
