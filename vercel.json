@@ -7,10 +7,15 @@
       "maxDuration": 30
     }
   },
+  "outputDirectory": "dist/public",
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/api/(.*)",
       "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
