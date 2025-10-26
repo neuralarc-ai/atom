@@ -1,18 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "dist/index-supabase.js": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/dist/index-supabase.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/dist/index-supabase.js"
+      "dest": "/api/index.js"
     }
   ]
 }
