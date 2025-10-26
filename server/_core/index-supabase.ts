@@ -42,7 +42,7 @@ registerSupabaseAuthRoutes(app);
 // REST API routes
 registerRestApiRoutes(app);
 
-// Serve static files in production (Vercel)
+// Serve static files in production/Vercel
 if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
   serveStatic(app);
 }
