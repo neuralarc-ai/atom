@@ -24,6 +24,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCurrentUser, signOut } from "@/lib/supabase";
+import { AdminDashboardSkeleton } from "@/components/skeletons/AdminDashboardSkeleton";
 
 // Job role icon mapping
 const getJobIcon = (title: string) => {
@@ -46,23 +47,25 @@ export default function AdminDashboard() {
   // All hooks must be called at the top level, before any conditional returns
   const queryClient = useQueryClient();
   
-  const { data: jobs = [] } = useQuery({
+  const { data: jobs = [], isLoading: jobsLoading } = useQuery({
     queryKey: ['jobs'],
     queryFn: () => api.jobs.list(),
     enabled: isAuthenticated, // Only fetch when authenticated
   });
   
-  const { data: tests = [] } = useQuery({
+  const { data: tests = [], isLoading: testsLoading } = useQuery({
     queryKey: ['tests'],
     queryFn: () => api.tests.list(),
     enabled: isAuthenticated, // Only fetch when authenticated
   });
   
-  const { data: candidates = [] } = useQuery({
+  const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: () => api.candidates.list(),
     enabled: isAuthenticated, // Only fetch when authenticated
   });
+
+  const isLoading = jobsLoading || testsLoading || candidatesLoading;
 
   const approveReappearanceMutation = useMutation({
     mutationFn: (candidateId: string) => api.candidates.approveReappearance({ candidateId }),
@@ -109,14 +112,12 @@ export default function AdminDashboard() {
   
   // Show loading while checking auth
   if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#FF6347] mx-auto"></div>
-          <p className="mt-4 text-lg text-gray-600">Verifying authentication...</p>
-        </div>
-      </div>
-    );
+    return <AdminDashboardSkeleton />;
+  }
+  
+  // Show skeleton while loading data
+  if (isLoading) {
+    return <AdminDashboardSkeleton />;
   }
   
   // Don't render if not authenticated
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 p-8">
+      <div className="space-y-8 p-8 page-transition">
         {/* Header */}
         <div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-[#FF6347] via-[#D4E157] to-[#B2DFDB] bg-clip-text text-transparent mb-2">

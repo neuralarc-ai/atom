@@ -46,7 +46,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <div className="app-transition">
+            <Router />
+          </div>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

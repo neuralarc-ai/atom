@@ -17,6 +17,7 @@ import { CheckCircle2, Clock, Eye, Trash2, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { CandidatesPageSkeleton } from "@/components/skeletons/CandidatesPageSkeleton";
 
 export default function CandidatesPage() {
   const [, setLocation] = useLocation();
@@ -65,7 +66,7 @@ export default function CandidatesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 page-transition">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-gradient mb-2">Candidates</h1>
@@ -76,9 +77,7 @@ export default function CandidatesPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <p className="text-muted-foreground">Loading candidates...</p>
-          </div>
+          <CandidatesPageSkeleton />
         ) : candidates.length === 0 ? (
           <Card className="bento-card">
             <CardContent className="flex flex-col items-center justify-center py-16">

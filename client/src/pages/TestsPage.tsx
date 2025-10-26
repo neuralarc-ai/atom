@@ -23,6 +23,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { generateShortTestUrl } from "@/lib/urlEncoder";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TestsPageSkeleton } from "@/components/skeletons/TestsPageSkeleton";
 
 export default function TestsPage() {
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -88,9 +89,14 @@ export default function TestsPage() {
     high: { bg: "#1B5E20", text: "#FFFFFF", label: "Hard" }
   };
 
+  // Show skeleton while loading
+  if (isLoading) {
+    return <TestsPageSkeleton />;
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 page-transition">
         {/* Header Section with Gradient */}
         <div 
           className="relative overflow-hidden rounded-3xl p-8"

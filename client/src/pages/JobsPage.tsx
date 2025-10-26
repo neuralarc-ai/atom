@@ -37,6 +37,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { JobsPageSkeleton } from "@/components/skeletons/JobsPageSkeleton";
 
 // Job role icon mapping
 const getJobIcon = (title: string) => {
@@ -165,9 +166,14 @@ export default function JobsPage() {
     setIsEditOpen(true);
   };
 
+  // Show skeleton while loading
+  if (isLoading) {
+    return <JobsPageSkeleton />;
+  }
+
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8 bg-gradient-to-br from-[#FFF8F0] via-white to-[#F0F9F4]">
+      <div className="p-8 space-y-8 bg-gradient-to-br from-[#FFF8F0] via-white to-[#F0F9F4] page-transition">
         {/* Header Section with Stats */}
         <div className="relative">
           {/* Decorative Background Elements */}
