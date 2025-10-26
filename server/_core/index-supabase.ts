@@ -42,14 +42,9 @@ registerSupabaseAuthRoutes(app);
 // REST API routes
 registerRestApiRoutes(app);
 
-// Serve static files in production/Vercel
-if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-  try {
-    serveStatic(app);
-  } catch (error) {
-    console.error('Error serving static files:', error);
-    // Don't crash the app if static files can't be served
-  }
+// Serve static files in production (but not in Vercel - they serve static files separately)
+if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
+  serveStatic(app);
 }
 
 // Export the app for Vercel
