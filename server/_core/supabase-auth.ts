@@ -15,6 +15,7 @@ export class SupabaseAuthService {
    */
   async login(email: string, password: string): Promise<{ success: boolean; session?: any; error?: string }> {
     try {
+      console.log("[SupabaseAuth] Attempting login for:", email);
       const supabase = getSupabase();
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -28,13 +29,16 @@ export class SupabaseAuthService {
       }
 
       if (!data.session) {
+        console.error("[SupabaseAuth] No session created");
         return { success: false, error: "No session created" };
       }
 
+      console.log("[SupabaseAuth] Login successful");
       return { success: true, session: data.session };
-    } catch (error) {
+    } catch (error: any) {
       console.error("[SupabaseAuth] Login exception:", error);
-      return { success: false, error: "Login failed" };
+      console.error("[SupabaseAuth] Error details:", error.message, error.stack);
+      return { success: false, error: error.message || "Login failed" };
     }
   }
 
@@ -181,18 +185,23 @@ export function registerSupabaseAuthRoutes(app: Express) {
   // Login route
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
+      console.log("[Auth] Login route called");
       const { email, password } = req.body;
 
       if (!email || !password) {
+        console.log("[Auth] Missing email or password");
         return res.status(400).json({ error: "Email and password are required" });
       }
 
+      console.log("[Auth] Attempting login for:", email);
       const result = await supabaseAuthService.login(email, password);
 
       if (!result.success) {
+        console.log("[Auth] Login failed:", result.error);
         return res.status(401).json({ error: result.error });
       }
 
+      console.log("[Auth] Login successful, setting cookie");
       // Set session cookie
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, result.session.access_token, { 
@@ -204,9 +213,13 @@ export function registerSupabaseAuthRoutes(app: Express) {
         success: true,
         user: result.session.user,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("[Auth] Login route error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[Auth] Error stack:", error?.stack);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: error?.message || "Unknown error"
+      });
     }
   });
 

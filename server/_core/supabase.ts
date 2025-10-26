@@ -5,8 +5,9 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
  * Replaces Drizzle ORM with Supabase
  */
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.VITE_SUPABASE_SERVICE_KEY || "";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.VITE_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 let supabaseClient: SupabaseClient | null = null;
 
@@ -15,19 +16,32 @@ let supabaseClient: SupabaseClient | null = null;
  * Uses service role key for admin operations
  */
 export function getSupabase(): SupabaseClient {
+  console.log('[Supabase] Checking configuration...');
+  console.log('[Supabase] Has URL:', !!SUPABASE_URL);
+  console.log('[Supabase] Has Service Key:', !!SUPABASE_SERVICE_KEY);
+  console.log('[Supabase] All env vars:', {
+    SUPABASE_URL: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'missing',
+    hasServiceKey: !!SUPABASE_SERVICE_KEY,
+  });
+  
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    console.error('[Supabase] Configuration missing!');
+    console.error('[Supabase] Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')));
+    
     throw new Error(
-      "Supabase configuration missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_KEY in your .env file"
+      "Supabase configuration missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_KEY environment variables"
     );
   }
 
   if (!supabaseClient) {
+    console.log('[Supabase] Creating client...');
     supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
       },
     });
+    console.log('[Supabase] Client created successfully');
   }
 
   return supabaseClient;
@@ -37,7 +51,9 @@ export function getSupabase(): SupabaseClient {
  * Check if Supabase is configured
  */
 export function isSupabaseConfigured(): boolean {
-  return !!(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+  const configured = !!(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+  console.log('[Supabase] Configuration check:', configured);
+  return configured;
 }
 
 /**
