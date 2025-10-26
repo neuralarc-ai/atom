@@ -1,21 +1,21 @@
 {
   "version": 2,
+  "public": true,
   "installCommand": "corepack enable && corepack prepare pnpm@10.4.1 --activate && pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm run build",
+  "buildCommand": "pnpm run build && cp -r dist/public/* .",
   "functions": {
     "api/index.js": {
       "maxDuration": 30
     }
   },
-  "outputDirectory": "dist/public",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
