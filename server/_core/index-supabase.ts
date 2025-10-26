@@ -29,6 +29,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 // Create the Express app
 const app = express();
 
+console.log('[Server] Initializing Express app...');
+console.log('[Server] Vercel environment:', process.env.VERCEL);
+console.log('[Server] Node env:', process.env.NODE_ENV);
+
 // Configure body parser with larger size limit for file uploads
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -36,22 +40,36 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 // Configure cookie parser
 app.use(cookieParser());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Supabase Auth routes under /api/auth/*
-registerSupabaseAuthRoutes(app);
+try {
+  console.log('[Server] Registering Supabase auth routes...');
+  registerSupabaseAuthRoutes(app);
+  console.log('[Server] Supabase auth routes registered successfully');
+} catch (error) {
+  console.error('[Server] Error registering Supabase auth routes:', error);
+}
 
 // REST API routes
-registerRestApiRoutes(app);
+try {
+  console.log('[Server] Registering REST API routes...');
+  registerRestApiRoutes(app);
+  console.log('[Server] REST API routes registered successfully');
+} catch (error) {
+  console.error('[Server] Error registering REST API routes:', error);
+}
 
 // Add error handling middleware (must be last)
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Express error:', err);
+  console.error('[Server] Express error:', err);
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-// Serve static files in production (but not in Vercel - they serve static files separately)
-if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
-  serveStatic(app);
-}
+console.log('[Server] Express app initialized successfully');
 
 // Export the app for Vercel
 export default app;
