@@ -44,7 +44,12 @@ registerRestApiRoutes(app);
 
 // Serve static files in production/Vercel
 if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
-  serveStatic(app);
+  try {
+    serveStatic(app);
+  } catch (error) {
+    console.error('Error serving static files:', error);
+    // Don't crash the app if static files can't be served
+  }
 }
 
 // Export the app for Vercel
