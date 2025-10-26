@@ -1,11 +1,13 @@
 {
   "version": 2,
   "installCommand": "corepack enable && corepack prepare pnpm@10.4.1 --activate && pnpm install --no-frozen-lockfile",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
+  "buildCommand": "pnpm run build",
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
