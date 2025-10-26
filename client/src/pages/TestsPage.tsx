@@ -17,11 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import { ClipboardList, Copy, Plus, Trash2, FileText, Clock, Target, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { generateShortTestUrl } from "@/lib/urlEncoder";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function TestsPage() {
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -30,29 +31,38 @@ export default function TestsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<string | null>(null);
 
-  const utils = trpc.useUtils();
-  const { data: jobs = [] } = trpc.jobs.list.useQuery();
-  const { data: tests = [], isLoading } = trpc.tests.list.useQuery();
+  const queryClient = useQueryClient();
+  const { data: jobs = [] } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => api.jobs.list(),
+  });
+  const { data: tests = [], isLoading } = useQuery({
+    queryKey: ['tests'],
+    queryFn: () => api.tests.list(),
+  });
 
-  const generateMutation = trpc.tests.generate.useMutation({
-    onSuccess: (data) => {
-      utils.tests.list.invalidate();
+  const generateMutation = useMutation({
+    mutationFn: ({ jobId, complexity }: { jobId: string; complexity: "low" | "medium" | "high" }) => 
+      api.tests.generate({ jobId, complexity }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tests'] });
       setIsGenerateOpen(false);
       toast.success("Test generated successfully");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message);
     },
   });
 
-  const deleteMutation = trpc.tests.delete.useMutation({
+  const deleteMutation = useMutation({
+    mutationFn: ({ id }: { id: string }) => api.tests.delete(id),
     onSuccess: () => {
-      utils.tests.list.invalidate();
+      queryClient.invalidateQueries({ queryKey: ['tests'] });
       setDeleteDialogOpen(false);
       setTestToDelete(null);
       toast.success("Test deleted successfully");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message);
     },
   });

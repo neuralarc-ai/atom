@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import { 
   Briefcase, 
   Edit, 
@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Job role icon mapping
 const getJobIcon = (title: string) => {
@@ -52,26 +53,39 @@ const getJobIcon = (title: string) => {
 };
 
 export default function JobsPage() {
-  const { data: jobs = [], isLoading, refetch } = trpc.jobs.list.useQuery();
-  const createMutation = trpc.jobs.create.useMutation({
+  const queryClient = useQueryClient();
+  
+  const { data: jobs = [], isLoading } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => api.jobs.list(),
+  });
+  
+  const createMutation = useMutation({
+    mutationFn: (data: { title: string; description: string; skills: string[]; experience: string }) => 
+      api.jobs.create(data),
     onSuccess: () => {
       toast.success("Job created successfully");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
       setIsCreateOpen(false);
       setNewJob({ title: "", description: "", skills: "", experience: "" });
     },
   });
-  const updateMutation = trpc.jobs.update.useMutation({
+  
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      api.jobs.update(id, data),
     onSuccess: () => {
       toast.success("Job updated successfully");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
       setIsEditOpen(false);
     },
   });
-  const deleteMutation = trpc.jobs.delete.useMutation({
+  
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.jobs.delete(id),
     onSuccess: () => {
       toast.success("Job deleted successfully");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
     },
   });
 
@@ -80,7 +94,8 @@ export default function JobsPage() {
   const [editingJob, setEditingJob] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  const generateJobDetailsMutation = trpc.jobs.generateJobDetails.useMutation({
+  const generateJobDetailsMutation = useMutation({
+    mutationFn: (data: { title: string }) => api.ai.generateJobDetails(data),
     onSuccess: (data) => {
       setNewJob({
         ...newJob,
@@ -127,16 +142,18 @@ export default function JobsPage() {
     if (!editingJob) return;
     updateMutation.mutate({
       id: editingJob.id,
-      title: editingJob.title,
-      description: editingJob.description,
-      experience: editingJob.experience,
-      skills: editingJob.skills.split(",").map((s: string) => s.trim()),
+      data: {
+        title: editingJob.title,
+        description: editingJob.description,
+        experience: editingJob.experience,
+        skills: editingJob.skills.split(",").map((s: string) => s.trim()),
+      }
     });
   };
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this job?")) {
-      deleteMutation.mutate({ id });
+      deleteMutation.mutate(id);
     }
   };
 

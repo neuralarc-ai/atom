@@ -1,23 +1,32 @@
-import { trpc } from "@/lib/trpc";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
-import superjson from "superjson";
 import App from "./App";
 import "./index.css";
+import { ApiError } from "./lib/api";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error instanceof ApiError && error.status === 401) {
+          return false; // Don't retry on auth errors
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
-  if (!(error instanceof TRPCClientError)) return;
+  if (!(error instanceof ApiError)) return;
   if (typeof window === "undefined") return;
 
-  const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
+  const isUnauthorized = error.status === 401 || error.message === UNAUTHED_ERR_MSG;
 
   if (!isUnauthorized) return;
 
-  // Redirect to Supabase login page
+  // Redirect to login page
   window.location.href = '/login';
 };
 
@@ -37,25 +46,8 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
-const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-      transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
-      },
-    }),
-  ],
-});
-
 createRoot(document.getElementById("root")!).render(
-  <trpc.Provider client={trpcClient} queryClient={queryClient}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </trpc.Provider>
+  <QueryClientProvider client={queryClient}>
+    <App />
+  </QueryClientProvider>
 );

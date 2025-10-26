@@ -21,10 +21,12 @@ export default function LandingPage() {
     setIsLoading(true);
 
     try {
-      const { session, user } = await signIn(email, password);
+      const response = await signIn(email, password);
       
-      if (session && user) {
-        toast.success(`Welcome to Atom, ${user.email}!`);
+      if (response.success && response.user) {
+        toast.success(`Welcome to Atom, ${response.user.email}!`);
+        // Store authentication state
+        localStorage.setItem("atom_admin_token", "authenticated");
         setTimeout(() => {
           setLocation("/admin");
         }, 500);

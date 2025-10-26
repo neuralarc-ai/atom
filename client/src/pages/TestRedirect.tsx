@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Redirect page for short test URLs
@@ -11,10 +12,11 @@ export default function TestRedirect() {
   const [, setLocation] = useLocation();
   
   // Fetch test by short code
-  const { data: test, isLoading, error } = trpc.tests.getByShortCode.useQuery(
-    { shortCode: code || "" },
-    { enabled: !!code }
-  );
+  const { data: test, isLoading, error } = useQuery({
+    queryKey: ['tests', 'shortCode', code],
+    queryFn: () => api.tests.getByShortCode(code || ""),
+    enabled: !!code,
+  });
 
   useEffect(() => {
     if (!isLoading && test) {

@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 export default function TestPage() {
   const { testId } = useParams();
@@ -24,13 +25,20 @@ export default function TestPage() {
   const [lockoutReason, setLockoutReason] = useState<string>("");
   const [showRequestSuccess, setShowRequestSuccess] = useState(false);
 
-  const { data: test } = trpc.tests.getById.useQuery({ id: testId || "" }, { enabled: !!testId });
-  const { data: candidate } = trpc.candidates.getById.useQuery(
-    { id: candidateId || "" },
-    { enabled: !!candidateId }
-  );
+  const { data: test } = useQuery({
+    queryKey: ['tests', testId],
+    queryFn: () => api.tests.getById(testId || ""),
+    enabled: !!testId,
+  });
+  const { data: candidate } = useQuery({
+    queryKey: ['candidates', candidateId],
+    queryFn: () => api.candidates.getById(candidateId || ""),
+    enabled: !!candidateId,
+  });
 
-  const startMutation = trpc.candidates.start.useMutation({
+  const startMutation = useMutation({
+    mutationFn: ({ testId, name, email }: { testId: string; name: string; email: string }) =>
+      api.candidates.start({ testId, name, email }),
     onSuccess: (data) => {
       setCandidateId(data.candidateId);
       setHasStarted(true);
@@ -40,22 +48,34 @@ export default function TestPage() {
         setTimeLeft(duration);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Test start error:", error);
       alert(`Failed to start test: ${error.message}`);
     },
   });
 
-  const submitMutation = trpc.candidates.submit.useMutation({
+  const submitMutation = useMutation({
+    mutationFn: ({ candidateId, answers }: { candidateId: string; answers: number[] }) =>
+      api.candidates.submit({ candidateId, answers }),
     onSuccess: (data) => {
       setResult(data);
       setIsSubmitting(false);
     },
   });
 
-  const lockoutMutation = trpc.candidates.lockout.useMutation({
+  const lockoutMutation = useMutation({
+    mutationFn: ({ candidateId, reason, answers }: { candidateId: string; reason: string; answers: number[] }) =>
+      api.candidates.lockout({ candidateId, reason, answers }),
     onSuccess: () => {
       // Lockout successful, show lockout screen
+    },
+  });
+
+  const requestReappearanceMutation = useMutation({
+    mutationFn: ({ candidateId }: { candidateId: string }) =>
+      api.candidates.requestReappearance({ candidateId }),
+    onSuccess: () => {
+      setShowRequestSuccess(true);
     },
   });
 
@@ -162,11 +182,6 @@ export default function TestPage() {
 
   const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
 
-  const requestReappearanceMutation = trpc.candidates.requestReappearance.useMutation({
-    onSuccess: () => {
-      setShowRequestSuccess(true);
-    },
-  });
 
   // Keyboard navigation
   useEffect(() => {

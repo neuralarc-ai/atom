@@ -19,13 +19,32 @@ export function useAuth(options?: UseAuthOptions) {
       try {
         setLoading(true);
         console.log('Checking authentication...');
+        
+        // Check localStorage first
+        const localAuth = localStorage.getItem("atom_admin_token") === "authenticated";
+        if (!localAuth) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Verify with server
         const userData = await getCurrentUser();
         console.log('User data received:', userData);
-        setUser(userData);
+        
+        if (userData) {
+          setUser(userData);
+        } else {
+          // Clear invalid auth state
+          localStorage.removeItem("atom_admin_token");
+          setUser(null);
+        }
       } catch (error) {
         console.error('Error getting user:', error);
         setError(error as Error);
         setUser(null);
+        // Clear invalid auth state on error
+        localStorage.removeItem("atom_admin_token");
       } finally {
         setLoading(false);
       }
@@ -40,9 +59,18 @@ export function useAuth(options?: UseAuthOptions) {
       setLoading(true);
       await signOut();
       setUser(null);
+      // Clear localStorage tokens
+      localStorage.removeItem("atom_admin_token");
+      localStorage.removeItem("manus-runtime-user-info");
+      // Redirect to landing page
+      window.location.href = "/";
     } catch (error) {
       console.error('Logout error:', error);
       setError(error as Error);
+      // Even if logout fails, clear local state and redirect
+      localStorage.removeItem("atom_admin_token");
+      localStorage.removeItem("manus-runtime-user-info");
+      window.location.href = "/";
     } finally {
       setLoading(false);
     }

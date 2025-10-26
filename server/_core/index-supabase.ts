@@ -3,10 +3,8 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import cookieParser from "cookie-parser";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerSupabaseAuthRoutes } from "./supabase-auth";
-import { appRouter } from "../routers";
-import { createContext } from "./context-supabase";
+import { registerRestApiRoutes } from "../api/rest";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -42,14 +40,8 @@ async function startServer() {
   // Supabase Auth routes under /api/auth/*
   registerSupabaseAuthRoutes(app);
   
-  // tRPC API
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    })
-  );
+  // REST API routes
+  registerRestApiRoutes(app);
   
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
@@ -68,6 +60,7 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     console.log(`Using Supabase for database and authentication`);
+    console.log(`REST API available at http://localhost:${port}/api/`);
   });
 }
 

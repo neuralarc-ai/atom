@@ -118,17 +118,35 @@ export class SupabaseAuthService {
     }
 
     if (!token) {
+      console.log("[Auth] No token found in request");
       throw new Error("No authentication token provided");
     }
 
+    console.log("[Auth] Attempting to authenticate with token");
+
+    // Create a Supabase client with the user's access token
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
+    const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "";
+    
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+
     // Verify the token with Supabase Auth
-    const supabase = getSupabase();
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
 
     if (error || !user) {
+      console.log("[Auth] Authentication failed:", error?.message || "No user");
       throw new Error("Invalid or expired session");
     }
 
+    console.log("[Auth] Successfully authenticated user:", user.email);
+    
     // Map Supabase user to expected User format
     return {
       id: user.id,

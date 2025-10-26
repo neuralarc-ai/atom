@@ -12,20 +12,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import { CheckCircle2, Clock, Eye, Trash2, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 export default function CandidatesPage() {
   const [, setLocation] = useLocation();
-  const { data: candidates = [], isLoading, refetch } = trpc.candidates.list.useQuery();
-  const deleteMutation = trpc.candidates.delete.useMutation({
+  const { data: candidates = [], isLoading, refetch } = useQuery({
+    queryKey: ['candidates'],
+    queryFn: () => api.candidates.list(),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: ({ id }: { id: string }) => api.candidates.delete(id),
     onSuccess: () => {
       toast.success("Candidate deleted successfully");
       refetch();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to delete candidate");
     },
   });
@@ -203,7 +208,7 @@ export default function CandidatesPage() {
                             <p className="text-sm text-muted-foreground">{candidate.email}</p>
                             <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />
-                              Started: {formatDate(candidate.startedAt)}
+                              Started: {formatDate(candidate.started_at)}
                             </div>
                           </div>
                         </div>

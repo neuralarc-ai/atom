@@ -1,18 +1,29 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { useRoute, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CandidateResultsPage() {
   const [, params] = useRoute("/admin/candidates/:id");
   const [, setLocation] = useLocation();
   const candidateId = params?.id || "";
 
-  const { data: candidate, isLoading } = trpc.candidates.getById.useQuery({ id: candidateId });
-  const { data: tests = [] } = trpc.tests.list.useQuery();
-  const { data: jobs = [] } = trpc.jobs.list.useQuery();
+  const { data: candidate, isLoading } = useQuery({
+    queryKey: ['candidates', candidateId],
+    queryFn: () => api.candidates.getById(candidateId),
+    enabled: !!candidateId,
+  });
+  const { data: tests = [] } = useQuery({
+    queryKey: ['tests'],
+    queryFn: () => api.tests.list(),
+  });
+  const { data: jobs = [] } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => api.jobs.list(),
+  });
 
   if (isLoading) {
     return (

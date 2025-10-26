@@ -25,6 +25,8 @@ export default function LandingPage() {
       
       if (response.success && response.user) {
         toast.success(`Welcome to Atom, ${response.user.email}!`);
+        // Store authentication state
+        localStorage.setItem("atom_admin_token", "authenticated");
         // Force a page reload to refresh authentication state
         setTimeout(() => {
           window.location.href = "/admin";

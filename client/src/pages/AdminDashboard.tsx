@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/api";
 import {
   AlertCircle,
   ArrowUpRight,
@@ -21,7 +21,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "../components/DashboardLayout";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCurrentUser, signOut } from "@/lib/supabase";
 
 // Job role icon mapping
 const getJobIcon = (title: string) => {
@@ -38,28 +40,89 @@ const getJobIcon = (title: string) => {
 };
 
 export default function AdminDashboard() {
-  // Check custom authentication
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem("atom_admin_token") === "authenticated";
-    if (!isAuthenticated) {
-      window.location.href = "/";
-    }
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
-  const { data: jobs = [] } = trpc.jobs.list.useQuery();
-  const { data: tests = [] } = trpc.tests.list.useQuery();
-  const { data: candidates = [] } = trpc.candidates.list.useQuery();
+  // All hooks must be called at the top level, before any conditional returns
+  const queryClient = useQueryClient();
+  
+  const { data: jobs = [] } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: () => api.jobs.list(),
+    enabled: isAuthenticated, // Only fetch when authenticated
+  });
+  
+  const { data: tests = [] } = useQuery({
+    queryKey: ['tests'],
+    queryFn: () => api.tests.list(),
+    enabled: isAuthenticated, // Only fetch when authenticated
+  });
+  
+  const { data: candidates = [] } = useQuery({
+    queryKey: ['candidates'],
+    queryFn: () => api.candidates.list(),
+    enabled: isAuthenticated, // Only fetch when authenticated
+  });
 
-  const utils = trpc.useUtils();
-  const approveReappearanceMutation = trpc.candidates.approveReappearance.useMutation({
+  const approveReappearanceMutation = useMutation({
+    mutationFn: (candidateId: string) => api.candidates.approveReappearance({ candidateId }),
     onSuccess: () => {
-      utils.candidates.list.invalidate();
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
       toast.success("Reappearance approved successfully");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Failed to approve: ${error.message}`);
     },
   });
+  
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Check localStorage first for quick check
+        const localAuth = localStorage.getItem("atom_admin_token") === "authenticated";
+        if (!localAuth) {
+          window.location.href = "/";
+          return;
+        }
+        
+        // Verify with server
+        const user = await getCurrentUser();
+        if (user) {
+          setIsAuthenticated(true);
+        } else {
+          // Clear invalid auth state
+          localStorage.removeItem("atom_admin_token");
+          window.location.href = "/";
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        localStorage.removeItem("atom_admin_token");
+        window.location.href = "/";
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#FF6347] mx-auto"></div>
+          <p className="mt-4 text-lg text-gray-600">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Don't render if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const completedCandidates = candidates.filter((c) => c.status === "completed");
   const reappearanceRequests = candidates.filter((c) => c.status === "reappearance_requested");
@@ -114,7 +177,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                         <Button
-                          onClick={() => approveReappearanceMutation.mutate({ candidateId: candidate.id })}
+                          onClick={() => approveReappearanceMutation.mutate(candidate.id)}
                           disabled={approveReappearanceMutation.isPending}
                           className="bg-gradient-to-r from-[#D4E157] to-[#B2DFDB] text-[#1B5E20] font-semibold hover:shadow-lg transition-all"
                         >

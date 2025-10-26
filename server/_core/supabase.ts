@@ -5,8 +5,8 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
  * Replaces Drizzle ORM with Supabase
  */
 
-const SUPABASE_URL = process.env.SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || "";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.VITE_SUPABASE_SERVICE_KEY || "";
 
 let supabaseClient: SupabaseClient | null = null;
 
@@ -17,7 +17,7 @@ let supabaseClient: SupabaseClient | null = null;
 export function getSupabase(): SupabaseClient {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     throw new Error(
-      "Supabase configuration missing. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY in your .env file"
+      "Supabase configuration missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_KEY in your .env file"
     );
   }
 
