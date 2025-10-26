@@ -42,6 +42,12 @@ registerSupabaseAuthRoutes(app);
 // REST API routes
 registerRestApiRoutes(app);
 
+// Add error handling middleware (must be last)
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Express error:', err);
+  res.status(500).json({ error: 'Internal server error', details: err.message });
+});
+
 // Serve static files in production (but not in Vercel - they serve static files separately)
 if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
   serveStatic(app);
