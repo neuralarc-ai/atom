@@ -8,17 +8,19 @@ You must set the following environment variables in your Vercel project settings
 
 ### Supabase Configuration
 
-1. **VITE_SUPABASE_URL** - Your Supabase project URL
+**⚠️ IMPORTANT**: Vercel does NOT expose `VITE_` prefixed environment variables to serverless functions. Use the non-prefixed versions below.
+
+1. **SUPABASE_URL** (or VITE_SUPABASE_URL) - Your Supabase project URL
    - Find this in your Supabase dashboard under Project Settings > API
    - Example: `https://xxxxx.supabase.co`
 
-2. **VITE_SUPABASE_SERVICE_KEY** - Your Supabase service role key
+2. **SUPABASE_SERVICE_KEY** (or VITE_SUPABASE_SERVICE_KEY) - Your Supabase service role key
    - Find this in your Supabase dashboard under Project Settings > API
    - ⚠️ **Important**: This is a service role key with admin privileges
    - Keep it secret - never commit to version control
    - Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
-3. **VITE_SUPABASE_ANON_KEY** - Your Supabase anonymous key
+3. **SUPABASE_ANON_KEY** (or VITE_SUPABASE_ANON_KEY) - Your Supabase anonymous key
    - Find this in your Supabase dashboard under Project Settings > API
    - This is used for client-side authentication
    - Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
@@ -30,10 +32,12 @@ You must set the following environment variables in your Vercel project settings
 3. Go to **Settings** → **Environment Variables**
 4. Add each variable:
    - Click **Add New**
-   - Enter the name (e.g., `VITE_SUPABASE_URL`)
+   - Enter the name (e.g., `SUPABASE_URL` - without VITE_ prefix for server-side)
    - Enter the value
    - Select the environments where it should be available (Production, Preview, Development)
    - Click **Save**
+
+**📝 Note**: The code now supports both `SUPABASE_*` (recommended) and `VITE_SUPABASE_*` variable names to work with Vercel serverless functions.
 
 ## After Setting Variables
 
