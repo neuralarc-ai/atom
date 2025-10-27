@@ -39,7 +39,7 @@ const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
 
-export default function DashboardLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -104,6 +104,9 @@ export default function DashboardLayout({
   );
 }
 
+// Export memoized version to prevent rerenders on route changes
+export default memo(DashboardLayout);
+
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
   setSidebarWidth: (width: number) => void;
@@ -127,7 +130,7 @@ const MenuItem = memo(({ item, isActive, onNavigate }: { item: typeof menuItems[
   );
 });
 
-function DashboardLayoutContent({
+const DashboardLayoutContent = memo(function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
@@ -313,4 +316,4 @@ function DashboardLayoutContent({
       </SidebarInset>
     </>
   );
-}
+});
