@@ -212,7 +212,7 @@ function DashboardLayoutContent({
                   </svg>
                   <button
                     onClick={toggleSidebar}
-                    className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
                   >
                     <PanelLeft className="h-4 w-4 text-foreground" />
                   </button>
@@ -237,7 +237,7 @@ function DashboardLayoutContent({
                   </div>
                   <button
                     onClick={toggleSidebar}
-                    className="ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                    className="ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0 cursor-pointer"
                   >
                     <PanelLeft className="h-4 w-4 text-muted-foreground" />
                   </button>
@@ -262,7 +262,7 @@ function DashboardLayoutContent({
           <SidebarFooter className="p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
                   <Avatar className="h-9 w-9 gradient-mint shrink-0">
                     <AvatarFallback className="bg-transparent text-dark-green font-bold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
