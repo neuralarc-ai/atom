@@ -20,20 +20,14 @@ export function useAuth(options?: UseAuthOptions) {
         setLoading(true);
         console.log('Checking authentication...');
         
-        // Check localStorage first
-        const localAuth = localStorage.getItem("atom_admin_token") === "authenticated";
-        if (!localAuth) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-        
-        // Verify with server
+        // Always check with server - session cookie persists across reloads
         const userData = await getCurrentUser();
         console.log('User data received:', userData);
         
         if (userData) {
           setUser(userData);
+          // Update localStorage after successful auth check
+          localStorage.setItem("atom_admin_token", "authenticated");
         } else {
           // Clear invalid auth state
           localStorage.removeItem("atom_admin_token");

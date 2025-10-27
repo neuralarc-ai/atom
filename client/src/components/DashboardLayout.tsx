@@ -57,8 +57,9 @@ export default function DashboardLayout({
     return null;
   }
 
-  if (!user) {
-    // If on an admin route and not authenticated, redirect to login
+  if (!user && !loading) {
+    // Only redirect if we've finished loading and still no user
+    // This prevents redirecting during the initial auth check on hard reload
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
       window.location.href = '/login';
       return null;
