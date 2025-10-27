@@ -63,7 +63,13 @@ export function registerRestApiRoutes(app: Express) {
         throw error;
       }
       
-      res.json(data || []);
+      // Parse skills from JSON string to array
+      const parsedData = (data || []).map(job => ({
+        ...job,
+        skills: typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills
+      }));
+      
+      res.json(parsedData);
     } catch (error) {
       console.error("Error fetching jobs:", error);
       res.status(500).json({ error: "Failed to fetch jobs" });
@@ -80,7 +86,13 @@ export function registerRestApiRoutes(app: Express) {
         throw error;
       }
       
-      res.json(data);
+      // Parse skills from JSON string to array
+      const parsedData = {
+        ...data,
+        skills: typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills
+      };
+      
+      res.json(parsedData);
     } catch (error) {
       console.error("Error fetching job:", error);
       res.status(500).json({ error: "Failed to fetch job" });
@@ -114,7 +126,13 @@ export function registerRestApiRoutes(app: Express) {
         throw error;
       }
 
-      res.json({ success: true, data });
+      // Parse skills from JSON string to array
+      const parsedData = {
+        ...data,
+        skills: typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills
+      };
+
+      res.json({ success: true, data: parsedData });
     } catch (error) {
       console.error("Error creating job:", error);
       res.status(500).json({ error: "Failed to create job" });
@@ -146,7 +164,13 @@ export function registerRestApiRoutes(app: Express) {
         throw error;
       }
 
-      res.json({ success: true, data });
+      // Parse skills from JSON string to array
+      const parsedData = {
+        ...data,
+        skills: typeof data.skills === 'string' ? JSON.parse(data.skills) : data.skills
+      };
+
+      res.json({ success: true, data: parsedData });
     } catch (error) {
       console.error("Error updating job:", error);
       res.status(500).json({ error: "Failed to update job" });

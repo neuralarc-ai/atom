@@ -161,7 +161,7 @@ export default function JobsPage() {
   const handleEdit = (job: any) => {
     setEditingJob({
       ...job,
-      skills: job.skills.join(", "),
+      skills: Array.isArray(job.skills) ? job.skills.join(", ") : "",
     });
     setIsEditOpen(true);
   };
