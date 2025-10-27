@@ -20,29 +20,39 @@ export function getSupabase(): SupabaseClient {
   console.log('[Supabase] Checking configuration...');
   console.log('[Supabase] Has URL:', !!SUPABASE_URL);
   console.log('[Supabase] Has Service Key:', !!SUPABASE_SERVICE_KEY);
-  console.log('[Supabase] All env vars:', {
-    SUPABASE_URL: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'missing',
-    hasServiceKey: !!SUPABASE_SERVICE_KEY,
-  });
+  
+  const availableEnvVars = Object.keys(process.env).filter(k => k.includes('SUPABASE'));
+  console.log('[Supabase] Available SUPABASE env vars:', availableEnvVars);
   
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error('[Supabase] Configuration missing!');
-    console.error('[Supabase] Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')));
+    const missingVars = [];
+    if (!SUPABASE_URL) missingVars.push('SUPABASE_URL');
+    if (!SUPABASE_SERVICE_KEY) missingVars.push('SUPABASE_SERVICE_KEY');
     
-    throw new Error(
-      "Supabase configuration missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_KEY environment variables"
-    );
+    console.error('[Supabase] Configuration missing!');
+    console.error('[Supabase] Missing variables:', missingVars);
+    console.error('[Supabase] Available env vars:', availableEnvVars);
+    
+    const errorMsg = `Supabase configuration missing. Please set ${missingVars.join(' and ')} environment variables. For Vercel deployment, add these in Settings > Environment Variables.`;
+    console.error('[Supabase] Error:', errorMsg);
+    
+    throw new Error(errorMsg);
   }
 
   if (!supabaseClient) {
     console.log('[Supabase] Creating client...');
-    supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-    console.log('[Supabase] Client created successfully');
+    try {
+      supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+      console.log('[Supabase] Client created successfully');
+    } catch (error) {
+      console.error('[Supabase] Error creating client:', error);
+      throw new Error('Failed to create Supabase client');
+    }
   }
 
   return supabaseClient;
