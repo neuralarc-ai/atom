@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index-supabase.ts",
-    "build": "vite build && esbuild server/_core/index-supabase.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build && esbuild server/_core/index-supabase.ts --platform=node --bundle --format=esm --outdir=dist --packages=external --external:fsevents --external:lightningcss --external:@tailwindcss/* --external:rollup --external:@rollup/*",
     "start": "NODE_ENV=production node dist/index-supabase.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
