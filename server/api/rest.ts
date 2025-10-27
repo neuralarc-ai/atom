@@ -684,7 +684,7 @@ Example format:
       console.log('[AI Test Generation] Starting for job:', job.title);
       console.log('[AI Test Generation] Complexity:', complexity);
       
-      const prompt = `Generate exactly 10 multiple-choice questions for a ${complexity} complexity test for the position of ${job.title}. Keep each question concise and focused.
+      const prompt = `Generate exactly 50 multiple-choice questions for a ${complexity} complexity test for the position of ${job.title}. Keep each question concise and focused.
 
 Job Description: ${job.description}
 Required Skills: ${skillsArray.join(", ")}
