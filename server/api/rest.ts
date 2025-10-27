@@ -704,13 +704,19 @@ Be specific and professional in your response.`;
         }
         
         res.json({ success: true, testId: newTest.id, shortCode });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error in test generation:", error);
-        res.status(500).json({ error: "Failed to generate test questions. Please try again." });
+        console.error("Error details:", error?.message);
+        throw error; // Re-throw to outer catch
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating test:", error);
-      res.status(500).json({ error: "Failed to generate test" });
+      console.error("Error details:", error?.message, error?.stack);
+      res.status(500).json({ 
+        error: "Failed to generate test",
+        message: error?.message || "Unknown error",
+        details: error?.toString()
+      });
     }
   });
 }

@@ -121,8 +121,16 @@ Important:
     
     // Validate question structure
     questions.forEach((q, index) => {
-      if (!q.question || !Array.isArray(q.options) || q.options.length !== 4 || typeof q.correctAnswer !== "number") {
+      if (!q.question || !Array.isArray(q.options) || q.options.length !== 4) {
         throw new Error(`Invalid question structure at index ${index}`);
+      }
+      // Handle both index (number) and letter (A/B/C/D) formats
+      if (typeof q.correctAnswer === "string") {
+        // Convert letter to index
+        q.correctAnswer = q.correctAnswer.charCodeAt(0) - 65;
+      }
+      if (typeof q.correctAnswer !== "number") {
+        throw new Error(`Invalid correctAnswer format at index ${index}`);
       }
     });
     
