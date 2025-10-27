@@ -35,7 +35,7 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
   try {
     const client = getGeminiClient();
     const model = client.getGenerativeModel({ 
-      model: options.model || "gemini-pro",
+      model: options.model || "gemini-2.5-pro",
     });
 
     const result = await model.generateContent({
@@ -104,11 +104,7 @@ Important:
 - Return ONLY the JSON array`;
 
   try {
-    const response = await generateWithGemini({ 
-      prompt,
-      model: "gemini-2.5-pro",
-      maxTokens: 16384
-    });
+    const response = await generateWithGemini({ prompt });
     
     // Clean up the response to extract JSON
     let jsonText = response.trim();
@@ -125,16 +121,8 @@ Important:
     
     // Validate question structure
     questions.forEach((q, index) => {
-      if (!q.question || !Array.isArray(q.options) || q.options.length !== 4) {
+      if (!q.question || !Array.isArray(q.options) || q.options.length !== 4 || typeof q.correctAnswer !== "number") {
         throw new Error(`Invalid question structure at index ${index}`);
-      }
-      // Handle both index (number) and letter (A/B/C/D) formats
-      if (typeof q.correctAnswer === "string") {
-        // Convert letter to index
-        q.correctAnswer = q.correctAnswer.charCodeAt(0) - 65;
-      }
-      if (typeof q.correctAnswer !== "number") {
-        throw new Error(`Invalid correctAnswer format at index ${index}`);
       }
     });
     

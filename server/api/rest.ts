@@ -594,34 +594,56 @@ export function registerRestApiRoutes(app: Express) {
         return res.status(400).json({ error: "Job title is required" });
       }
 
-      const { generateWithGemini } = await import("../_core/gemini");
+      const { invokeLLM } = await import("../_core/llm");
 
-      const prompt = `You are an expert HR professional. Based on the job title "${title}", generate a detailed job posting.
+      const prompt = `You are an expert HR professional. Based on the job title "${title}", generate:
+1. A detailed job description (2-3 paragraphs)
+2. Required skills (5-8 key skills)
+3. Experience requirement (e.g., "2-4 years", "5+ years")
 
-Return ONLY a valid JSON object with this exact structure (no markdown, no code blocks):
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text. The response must be parseable JSON.
+
+Example format:
 {
-  "description": "Detailed 2-3 paragraph job description here",
-  "skills": ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5"],
+  "description": "Full job description here",
+  "skills": ["Skill 1", "Skill 2", "Skill 3"],
   "experience": "2-4 years"
-}
+}`;
 
-Be specific and professional in your response.`;
-
-      const response = await generateWithGemini({ 
-        prompt,
-        model: "gemini-2.5-pro",
-        maxTokens: 8192
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are an expert HR professional who creates detailed job descriptions." },
+          { role: "user", content: prompt },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "job_details",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                description: { type: "string" },
+                skills: {
+                  type: "array",
+                  items: { type: "string" },
+                },
+                experience: { type: "string" },
+              },
+              required: ["description", "skills", "experience"],
+              additionalProperties: false,
+            },
+          },
+        },
       });
 
-      // Clean up the response to extract JSON
-      let jsonText = response.trim();
-      jsonText = jsonText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const content = response.choices[0].message.content as string;
       
       try {
-        const jobDetails = JSON.parse(jsonText);
+        const jobDetails = JSON.parse(content || "{}");
         res.json(jobDetails);
       } catch (error) {
-        console.error("Failed to parse Gemini response as JSON:", response);
+        console.error("Failed to parse LLM response as JSON:", content);
         res.status(500).json({ error: "Failed to generate job details. Please try again." });
       }
     } catch (error) {
@@ -643,7 +665,7 @@ Be specific and professional in your response.`;
       }
 
       const supabase = getSupabase();
-      const { generateQuestionsWithGemini } = await import("../_core/gemini");
+      const { invokeLLM } = await import("../_core/llm");
 
       // Get job details
       const { data: job, error: jobError } = await supabase
@@ -656,25 +678,90 @@ Be specific and professional in your response.`;
         return res.status(404).json({ error: "Job not found" });
       }
 
-      // Generate questions using Gemini
+      // Generate questions using LLM
       const skillsArray = Array.isArray(job.skills) ? job.skills : JSON.parse(job.skills);
       
-      const questions = await generateQuestionsWithGemini({
-        jobTitle: job.title,
-        jobDescription: job.description,
-        skills: skillsArray,
-        complexity: complexity,
-        count: 21,
+      console.log('[AI Test Generation] Starting for job:', job.title);
+      console.log('[AI Test Generation] Complexity:', complexity);
+      
+      const prompt = `Generate exactly 10 multiple-choice questions for a ${complexity} complexity test for the position of ${job.title}. Keep each question concise and focused.
+
+Job Description: ${job.description}
+Required Skills: ${skillsArray.join(", ")}
+Experience Level: ${job.experience}
+
+For each question, provide:
+1. The question text (keep it brief)
+2. Four options (A, B, C, D)
+3. The correct answer (A, B, C, or D)
+4. A brief explanation
+
+IMPORTANT: Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.
+
+Return the response as a JSON object with this exact structure:
+{
+  "questions": [
+    {
+      "question": "Question text here",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "A",
+      "explanation": "Brief explanation"
+    }
+  ]
+}
+
+Keep questions practical and relevant to the job role.`;
+
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are an expert HR assessment designer. Generate high-quality technical questions." },
+          { role: "user", content: prompt },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "test_questions",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                questions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      question: { type: "string" },
+                      options: {
+                        type: "array",
+                        items: { type: "string" },
+                      },
+                      correctAnswer: { type: "string" },
+                      explanation: { type: "string" },
+                    },
+                    required: ["question", "options", "correctAnswer", "explanation"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["questions"],
+              additionalProperties: false,
+            },
+          },
+        },
       });
+
+      const content = response.choices[0].message.content;
+      const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+      
+      console.log("LLM Response:", contentStr);
       
       try {
-        // Convert correctAnswer from index (0-3) to letter (A-D) to match expected format
-        const formattedQuestions = questions.map(q => ({
-          question: q.question,
-          options: q.options,
-          correctAnswer: String.fromCharCode(65 + q.correctAnswer), // 0 -> "A", 1 -> "B", etc.
-          explanation: q.explanation
-        }));
+        const parsedQuestions = JSON.parse(contentStr || "{}");
+        console.log("Parsed Questions:", parsedQuestions);
+        
+        if (!parsedQuestions.questions || !Array.isArray(parsedQuestions.questions)) {
+          throw new Error("Invalid questions format from LLM");
+        }
 
         // Create test
         const { data: newTest, error: testError } = await supabase
@@ -682,7 +769,7 @@ Be specific and professional in your response.`;
           .insert({
             job_id: jobId,
             complexity: complexity,
-            questions: JSON.stringify(formattedQuestions),
+            questions: JSON.stringify(parsedQuestions.questions),
           })
           .select()
           .single();
@@ -705,19 +792,13 @@ Be specific and professional in your response.`;
         }
         
         res.json({ success: true, testId: newTest.id, shortCode });
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error in test generation:", error);
-        console.error("Error details:", error?.message);
-        throw error; // Re-throw to outer catch
+        res.status(500).json({ error: "Failed to generate test questions. Please try again." });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error generating test:", error);
-      console.error("Error details:", error?.message, error?.stack);
-      res.status(500).json({ 
-        error: "Failed to generate test",
-        message: error?.message || "Unknown error",
-        details: error?.toString()
-      });
+      res.status(500).json({ error: "Failed to generate test" });
     }
   });
 }
