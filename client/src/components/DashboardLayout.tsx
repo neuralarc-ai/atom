@@ -24,7 +24,6 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { Briefcase, ClipboardList, LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, useMemo, memo, useCallback } from "react";
 import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
@@ -55,7 +54,7 @@ export default function DashboardLayout({
   }, [sidebarWidth]);
 
   if (loading) {
-    return <DashboardLayoutSkeleton />
+    return null;
   }
 
   if (!user) {
