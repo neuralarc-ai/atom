@@ -65,6 +65,11 @@ export const testsApi = {
     apiRequest(`/tests/${id}`, {
       method: 'DELETE',
     }),
+  generate: (data: { jobId: string; complexity: 'low' | 'medium' | 'high' }) =>
+    apiRequest('/ai/generate-test', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // Candidates API
