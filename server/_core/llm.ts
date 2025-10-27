@@ -212,7 +212,7 @@ const normalizeToolChoice = (
 const resolveApiUrl = () =>
   ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
     ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    : "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
@@ -330,7 +330,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   const result: InvokeResult = {
     id: `gemini-${Date.now()}`,
     created: Math.floor(Date.now() / 1000),
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-pro",
     choices: [{
       index: 0,
       message: {
