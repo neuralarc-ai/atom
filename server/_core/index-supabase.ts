@@ -51,6 +51,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Diagnostic endpoint to check environment variables
+app.get('/api/debug/env', (req, res) => {
+  const allEnv = Object.keys(process.env);
+  const supabaseVars = allEnv.filter(k => k.includes('SUPABASE'));
+  res.json({
+    allEnvCount: allEnv.length,
+    supabaseVars: supabaseVars.reduce((acc, key) => {
+      const value = process.env[key];
+      acc[key] = value ? `${value.substring(0, 20)}...` : 'missing';
+      return acc;
+    }, {} as Record<string, string>),
+    raw: {
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
+      SUPABASE_SERVICE_KEY: !!process.env.SUPABASE_SERVICE_KEY,
+      VITE_SUPABASE_SERVICE_KEY: !!process.env.VITE_SUPABASE_SERVICE_KEY,
+    }
+  });
+});
+
 // Supabase Auth routes under /api/auth/*
 try {
   console.log('[Server] Registering Supabase auth routes...');
