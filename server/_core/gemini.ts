@@ -104,7 +104,11 @@ Important:
 - Return ONLY the JSON array`;
 
   try {
-    const response = await generateWithGemini({ prompt });
+    const response = await generateWithGemini({ 
+      prompt,
+      model: "gemini-2.0-flash-exp",
+      maxTokens: 16384
+    });
     
     // Clean up the response to extract JSON
     let jsonText = response.trim();
