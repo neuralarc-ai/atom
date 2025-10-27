@@ -610,6 +610,7 @@ Be specific and professional in your response.`;
       const response = await generateWithGemini({ 
         prompt,
         model: "gemini-2.5-pro",
+        maxTokens: 8192
       });
 
       // Clean up the response to extract JSON

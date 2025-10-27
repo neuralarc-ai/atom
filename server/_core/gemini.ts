@@ -106,7 +106,7 @@ Important:
   try {
     const response = await generateWithGemini({ 
       prompt,
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-pro",
       maxTokens: 16384
     });
     
