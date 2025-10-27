@@ -58,6 +58,12 @@ export default function DashboardLayout({
   }
 
   if (!user) {
+    // If on an admin route and not authenticated, redirect to login
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      window.location.href = '/login';
+      return null;
+    }
+    
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
