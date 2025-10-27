@@ -22,7 +22,7 @@ import {
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Briefcase, ClipboardList, LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState, useMemo, memo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
@@ -109,6 +109,24 @@ type DashboardLayoutContentProps = {
   setSidebarWidth: (width: number) => void;
 };
 
+// Memoized menu item component to prevent unnecessary rerenders
+const MenuItem = memo(({ item, isActive, onNavigate }: { item: typeof menuItems[0], isActive: boolean, onNavigate: (path: string) => void }) => {
+  const Icon = item.icon;
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={isActive}
+        onClick={() => onNavigate(item.path)}
+        tooltip={item.label}
+        className={`h-10 transition-all font-normal`}
+      >
+        <Icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
+        <span>{item.label}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+});
+
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
@@ -121,6 +139,11 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  
+  // Memoize navigation handler
+  const handleNavigate = useCallback((path: string) => {
+    setLocation(path);
+  }, [setLocation]);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -219,24 +242,14 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
-                      />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {menuItems.map(item => (
+                <MenuItem
+                  key={item.path}
+                  item={item}
+                  isActive={location === item.path}
+                  onNavigate={handleNavigate}
+                />
+              ))}
             </SidebarMenu>
           </SidebarContent>
 
