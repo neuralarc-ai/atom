@@ -90,11 +90,35 @@ try {
   console.error('[Server] Error registering REST API routes:', error);
 }
 
-// Add error handling middleware (must be last)
+// Serve static files in production (for Vercel and other production environments)
+// This must be registered BEFORE error handling middleware
+if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const distPath = path.resolve(__dirname, "..", "..", "dist", "public");
+  
+  console.log('[Server] Setting up static file serving from:', distPath);
+  
+  // Serve static files with a prefix to avoid conflicts with API routes
+  app.use(express.static(distPath));
+}
+
+// Add error handling middleware (must be after routes, before catch-all)
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('[Server] Express error:', err);
   res.status(500).json({ error: 'Internal server error', details: err.message });
 });
+
+// Catch-all handler for SPA routing - must be absolutely last
+if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const distPath = path.resolve(__dirname, "..", "..", "dist", "public");
+  
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
 console.log('[Server] Express app initialized successfully');
 
