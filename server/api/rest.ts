@@ -334,6 +334,24 @@ export function registerRestApiRoutes(app: Express) {
   });
 
   // Candidate test operations
+  // Allow candidates to fetch their own data (public endpoint)
+  app.get("/api/candidates/public/:id", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const supabase = getSupabase();
+      const { data, error } = await supabase.from("candidates").select("*").eq("id", id).single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching candidate data:", error);
+      res.status(500).json({ error: "Failed to fetch candidate data" });
+    }
+  });
+
   // Check candidate status endpoint
   app.post("/api/candidates/check-status", async (req: Request, res: Response) => {
     try {

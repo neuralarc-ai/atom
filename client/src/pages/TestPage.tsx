@@ -37,7 +37,7 @@ export default function TestPage() {
   });
   const { data: candidate, isLoading: isLoadingCandidate, isError: isCandidateError, error: candidateError } = useQuery<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>({
     queryKey: ['candidates', candidateId],
-    queryFn: () => api.candidates.getById(candidateId || ""),
+    queryFn: () => api.candidates.getPublic(candidateId || ""),
     enabled: !!candidateId,
     refetchOnMount: true,
     refetchOnWindowFocus: false,

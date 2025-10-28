@@ -78,6 +78,7 @@ export const testsApi = {
 export const candidatesApi = {
   list: () => apiRequest<any[]>('/candidates'),
   getById: (id: string) => apiRequest<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>(`/candidates/${id}`),
+  getPublic: (id: string) => apiRequest<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>(`/candidates/public/${id}`),
   delete: (id: string) =>
     apiRequest(`/candidates/${id}`, {
       method: 'DELETE',
