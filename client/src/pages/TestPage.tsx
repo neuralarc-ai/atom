@@ -35,10 +35,14 @@ export default function TestPage() {
     queryFn: () => api.tests.getById(testId || ""),
     enabled: !!testId,
   });
-  const { data: candidate } = useQuery<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>({
+  const { data: candidate, isLoading: isLoadingCandidate, isError: isCandidateError, error: candidateError } = useQuery<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>({
     queryKey: ['candidates', candidateId],
     queryFn: () => api.candidates.getById(candidateId || ""),
     enabled: !!candidateId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 0, // Always fetch fresh data
+    retry: 2, // Retry up to 2 times on failure
   });
 
   const startMutation = useMutation({
@@ -400,6 +404,59 @@ export default function TestPage() {
           </CardContent>
         </Card>
         </div>
+      </div>
+    );
+  }
+
+  // Show loading state while candidate data is being fetched after starting test
+  if (hasStarted && isLoadingCandidate) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md border-0 shadow-2xl">
+          <CardContent className="p-8">
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-lime-50 to-green-50 border-2 border-lime-300 text-center">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="animate-spin h-6 w-6 border-3 border-lime-600 border-t-transparent rounded-full" />
+                <span className="font-bold text-lg text-lime-900">Preparing Your Test...</span>
+              </div>
+              <p className="text-sm text-lime-800">
+                We are loading your questions. Please wait a moment.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if candidate data failed to load
+  if (hasStarted && isCandidateError) {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md border-0 shadow-2xl">
+          <CardContent className="p-8">
+            <div className="text-center space-y-6">
+              <div className="w-24 h-24 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="h-12 w-12 text-red-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-red-600 mb-3">Failed to Load Test</h1>
+                <p className="text-muted-foreground mb-4">
+                  We encountered an error while loading your test questions.
+                </p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Error: {candidateError?.message || "Unknown error"}
+                </p>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="gradient-coral text-white"
+                >
+                  Reload Page
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
