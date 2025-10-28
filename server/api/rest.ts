@@ -334,6 +334,41 @@ export function registerRestApiRoutes(app: Express) {
   });
 
   // Candidate test operations
+  // Check candidate status endpoint
+  app.post("/api/candidates/check-status", async (req: Request, res: Response) => {
+    try {
+      const { testId, email } = req.body;
+      
+      if (!testId || !email) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const supabase = getSupabase();
+      
+      // Check if candidate with this email has already attempted this test
+      const { data: existingCandidate } = await supabase
+        .from("candidates")
+        .select("*")
+        .eq("email", email)
+        .eq("test_id", testId)
+        .single();
+
+      if (existingCandidate) {
+        return res.json({
+          exists: true,
+          candidate: existingCandidate,
+        });
+      }
+
+      return res.json({
+        exists: false,
+      });
+    } catch (error) {
+      console.error("Error checking candidate status:", error);
+      return res.status(500).json({ error: "Failed to check candidate status" });
+    }
+  });
+
   app.post("/api/candidates/start", async (req: Request, res: Response) => {
     try {
       const { testId, name, email } = req.body;
@@ -360,7 +395,11 @@ export function registerRestApiRoutes(app: Express) {
         
         // Block if locked out (no reappearance approved)
         if ((existingCandidate.status === 'locked_out' || existingCandidate.status === 'reappearance_requested') && !existingCandidate.reappearance_approved_at) {
-          return res.status(403).json({ error: "You have been locked out of this test. Your reappearance request is pending admin approval." });
+          return res.status(403).json({ 
+            error: "You have been locked out of this test. Your reappearance request is pending admin approval.",
+            status: existingCandidate.status,
+            candidateId: existingCandidate.id,
+          });
         }
         
         // Allow if approved for reappearance - reset their test
@@ -437,7 +476,7 @@ export function registerRestApiRoutes(app: Express) {
         throw error;
       }
 
-      res.json({ success: true, candidateId: newCandidate.id });
+      res.json({ candidateId: newCandidate.id });
     } catch (error) {
       console.error("Error starting candidate test:", error);
       res.status(500).json({ error: "Failed to start test" });

@@ -2,9 +2,11 @@
 // Uses fetch with proper error handling and authentication
 
 class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  public data?: any;
+  constructor(public status: number, message: string, data?: any) {
     super(message);
     this.name = 'ApiError';
+    this.data = data;
   }
 }
 
@@ -25,7 +27,7 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new ApiError(response.status, errorData.error || 'Request failed');
+    throw new ApiError(response.status, errorData.error || 'Request failed', errorData);
   }
 
   return response.json();
@@ -58,8 +60,8 @@ export const jobsApi = {
 
 // Tests API
 export const testsApi = {
-  list: () => apiRequest('/tests'),
-  getById: (id: string) => apiRequest(`/tests/${id}`),
+  list: () => apiRequest<any[]>('/tests'),
+  getById: (id: string) => apiRequest<{ id: string; job_id: string; questions: string; complexity: 'low' | 'medium' | 'high'; short_code: string; created_at: string }>(`/tests/${id}`),
   getByShortCode: (shortCode: string) => apiRequest(`/tests/short-code/${shortCode}`),
   delete: (id: string) =>
     apiRequest(`/tests/${id}`, {
@@ -74,34 +76,39 @@ export const testsApi = {
 
 // Candidates API
 export const candidatesApi = {
-  list: () => apiRequest('/candidates'),
-  getById: (id: string) => apiRequest(`/candidates/${id}`),
+  list: () => apiRequest<any[]>('/candidates'),
+  getById: (id: string) => apiRequest<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>(`/candidates/${id}`),
   delete: (id: string) =>
     apiRequest(`/candidates/${id}`, {
       method: 'DELETE',
     }),
+  checkStatus: (data: { testId: string; email: string }) =>
+    apiRequest<{ exists: boolean; candidate?: { id: string; status: string; lockout_reason?: string; reappearance_approved_at?: string | null } }>('/candidates/check-status', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   start: (data: { testId: string; name: string; email: string }) =>
-    apiRequest('/candidates/start', {
+    apiRequest<{ candidateId: string }>('/candidates/start', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   submit: (data: { candidateId: string; answers: number[] }) =>
-    apiRequest('/candidates/submit', {
+    apiRequest<{ success: boolean; score: number; total: number; percentage: number; passed: boolean }>('/candidates/submit', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   lockout: (data: { candidateId: string; reason: string; answers?: number[] }) =>
-    apiRequest('/candidates/lockout', {
+    apiRequest<{ success: boolean }>('/candidates/lockout', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   requestReappearance: (data: { candidateId: string }) =>
-    apiRequest('/candidates/request-reappearance', {
+    apiRequest<{ success: boolean }>('/candidates/request-reappearance', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   approveReappearance: (data: { candidateId: string }) =>
-    apiRequest('/candidates/approve-reappearance', {
+    apiRequest<{ success: boolean }>('/candidates/approve-reappearance', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

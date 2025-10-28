@@ -24,13 +24,18 @@ export default function TestPage() {
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutReason, setLockoutReason] = useState<string>("");
   const [showRequestSuccess, setShowRequestSuccess] = useState(false);
+  const [existingCandidateStatus, setExistingCandidateStatus] = useState<{
+    status: string;
+    candidateId: string;
+    lockoutReason?: string;
+  } | null>(null);
 
-  const { data: test } = useQuery({
+  const { data: test } = useQuery<{ id: string; job_id: string; questions: string; complexity: 'low' | 'medium' | 'high'; short_code: string; created_at: string }>({
     queryKey: ['tests', testId],
     queryFn: () => api.tests.getById(testId || ""),
     enabled: !!testId,
   });
-  const { data: candidate } = useQuery({
+  const { data: candidate } = useQuery<{ id: string; test_id: string; name: string; email: string; questions: string; status: string; answers: string | null; score: number | null; total_questions: number | null; lockout_reason: string | null; reappearance_approved_at: string | null; created_at: string; started_at: string | null; completed_at: string | null }>({
     queryKey: ['candidates', candidateId],
     queryFn: () => api.candidates.getById(candidateId || ""),
     enabled: !!candidateId,
@@ -39,7 +44,7 @@ export default function TestPage() {
   const startMutation = useMutation({
     mutationFn: ({ testId, name, email }: { testId: string; name: string; email: string }) =>
       api.candidates.start({ testId, name, email }),
-    onSuccess: (data) => {
+    onSuccess: (data: { candidateId: string }) => {
       setCandidateId(data.candidateId);
       setHasStarted(true);
       // Set time based on test complexity
@@ -47,17 +52,33 @@ export default function TestPage() {
         const duration = (test.complexity === 'low') ? 20 * 60 : 45 * 60;
         setTimeLeft(duration);
       }
+      // Clear existing candidate status on successful start
+      setExistingCandidateStatus(null);
     },
     onError: (error: any) => {
       console.error("Test start error:", error);
-      alert(`Failed to start test: ${error.message}`);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      
+      // If it's a lockout error with status info, store it
+      if (error.data?.status && error.data?.candidateId) {
+        setExistingCandidateStatus({
+          status: error.data.status,
+          candidateId: error.data.candidateId,
+        });
+      } else if (error.response?.data) {
+        // Handle API error response
+        const errorMsg = error.response.data.error || error.message || "Failed to start test. Please try again.";
+        alert(errorMsg);
+      } else {
+        alert(`Failed to start test: ${error.message || "Unknown error occurred"}`);
+      }
     },
   });
 
   const submitMutation = useMutation({
     mutationFn: ({ candidateId, answers }: { candidateId: string; answers: number[] }) =>
       api.candidates.submit({ candidateId, answers }),
-    onSuccess: (data) => {
+    onSuccess: (data: { success: boolean; score: number; total: number; percentage: number; passed: boolean }) => {
       setResult(data);
       setIsSubmitting(false);
     },
@@ -76,8 +97,47 @@ export default function TestPage() {
       api.candidates.requestReappearance({ candidateId }),
     onSuccess: () => {
       setShowRequestSuccess(true);
+      // Update status to reappearance_requested
+      if (existingCandidateStatus) {
+        setExistingCandidateStatus({
+          ...existingCandidateStatus,
+          status: 'reappearance_requested',
+        });
+      }
     },
   });
+
+  // Check for existing candidate status when email changes
+  useEffect(() => {
+    const checkCandidateStatus = async () => {
+      if (!email || !testId) return;
+
+      try {
+        const response = await api.candidates.checkStatus({ testId, email }) as { exists: boolean; candidate?: { id: string; status: string; lockout_reason?: string; reappearance_approved_at?: string | null } };
+        if (response.exists && response.candidate) {
+          const candidate = response.candidate;
+          // Only show alert for locked out or reappearance requested (not for completed or in_progress)
+          if ((candidate.status === 'locked_out' || candidate.status === 'reappearance_requested') && !candidate.reappearance_approved_at) {
+            setExistingCandidateStatus({
+              status: candidate.status,
+              candidateId: candidate.id,
+              lockoutReason: candidate.lockout_reason,
+            });
+          } else if (candidate.status === 'completed' && !candidate.reappearance_approved_at) {
+            setExistingCandidateStatus({
+              status: 'completed',
+              candidateId: candidate.id,
+            });
+          }
+        }
+      } catch (error) {
+        // Ignore errors - candidate might not exist
+        console.log("No existing candidate found");
+      }
+    };
+
+    checkCandidateStatus();
+  }, [email, testId]);
 
   useEffect(() => {
     if (!hasStarted || result || timeLeft <= 0) return;
@@ -96,7 +156,9 @@ export default function TestPage() {
   }, [hasStarted, result, timeLeft]);
 
   useEffect(() => {
-    if (!hasStarted || result || isLocked) return;
+    // Only activate lockout detection if test has started, candidate data is loaded, and questions are ready
+    const questionsReady = candidate?.questions ? JSON.parse(candidate.questions).length > 0 : false;
+    if (!hasStarted || result || isLocked || !candidateId || !questionsReady) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden && !isLocked) {
@@ -113,29 +175,12 @@ export default function TestPage() {
       }
     };
 
-    const handleBlur = () => {
-      if (!document.hidden && !isLocked) {
-        setIsLocked(true);
-        setLockoutReason("You changed browser focus or switched windows");
-        // Submit with locked_out status
-        if (candidateId) {
-          lockoutMutation.mutate({ 
-            candidateId, 
-            reason: "focus_change",
-            answers 
-          });
-        }
-      }
-    };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleBlur);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleBlur);
     };
-  }, [hasStarted, result, isLocked]);
+  }, [hasStarted, result, isLocked, candidateId, candidate]);
 
   const questions = candidate?.questions ? JSON.parse(candidate.questions) : [];
 
