@@ -594,7 +594,7 @@ export default function TestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF5EE] via-[#F5F5DC] to-[#E8F5E9] flex flex-col items-center justify-center p-4">
-      <Card className="w-full max-w-md border-0 shadow-2xl">
+      <Card className={`w-full max-w-md border-0 shadow-2xl ${startMutation.isPending ? 'opacity-50 pointer-events-none' : ''}`}>
         <CardContent className="p-8">
           <div className="text-center mb-8">
             <svg className="w-20 h-20 mx-auto mb-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -621,6 +621,7 @@ export default function TestPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-12"
+                disabled={startMutation.isPending}
               />
             </div>
 
@@ -633,6 +634,7 @@ export default function TestPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12"
+                disabled={startMutation.isPending}
               />
             </div>
 
@@ -704,7 +706,7 @@ export default function TestPage() {
                   size="lg"
                   className="w-full h-12 gradient-coral text-white text-lg"
                   onClick={handleStart}
-                  disabled={!name || !email}
+                  disabled={!name || !email || startMutation.isPending}
                 >
                   I Understand, Start Test
                 </Button>
